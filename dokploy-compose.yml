@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  quantpulse-postgres:
+  db:
     image: postgres:15-alpine
     container_name: quantpulse-postgres
     environment:
@@ -23,14 +23,14 @@ services:
       timeout: 10s
       retries: 3
 
-  quantpulse-app:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: quantpulse-app
     environment:
       # Database Connection
-      - DATABASE_URL=postgresql://quantpulse_user:QuantPulse2024!SecurePass@quantpulse-postgres:5432/quantpulse
+      - DATABASE_URL=postgresql://quantpulse_user:QuantPulse2024!SecurePass@db:5432/quantpulse
       
       # Security & JWT
       - JWT_SECRET_KEY=QuantPulse2024!SuperSecretJWTKey!RandomString123456789AbCdEf
@@ -58,7 +58,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      quantpulse-postgres:
+      db:
         condition: service_healthy
     networks:
       - quantpulse_network
