@@ -1,0 +1,782 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts & History - QuantPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+.alert-item {
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.alert-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+}
+
+.alert-item.success {
+    border-left-color: #28a745;
+}
+
+.alert-item.failed {
+    border-left-color: #dc3545;
+}
+
+.alert-item.pending {
+    border-left-color: #ffc107;
+}
+
+.alert-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.alert-status {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.alert-status.success { background-color: #28a745; }
+.alert-status.failed { background-color: #dc3545; }
+.alert-status.pending { background-color: #ffc107; }
+
+.timeline-item {
+    position: relative;
+    padding-left: 2rem;
+    padding-bottom: 1rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0.5rem;
+    width: 1px;
+    height: calc(100% - 1rem);
+    background-color: #dee2e6;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid #dee2e6;
+    background-color: #fff;
+}
+
+.timeline-marker.success { border-color: #28a745; background-color: #28a745; }
+.timeline-marker.failed { border-color: #dc3545; background-color: #dc3545; }
+.timeline-marker.pending { border-color: #ffc107; background-color: #ffc107; }
+
+.filter-card {
+    position: sticky;
+    top: 1rem;
+    z-index: 100;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Alerts & Trading History</h2>
+            <p class="text-muted mb-0">Monitor your webhook alerts and trading activity</p>
+        </div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#testAlertModal">
+            <i class="fas fa-flask me-2"></i>Send Test Alert
+        </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-bell fa-2x me-3"></i>
+                        <div>
+                            <h3 class="mb-0" id="totalAlerts">{{ stats.total_alerts or 0 }}</h3>
+                            <p class="mb-0">Total Alerts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-2x me-3"></i>
+                        <div>
+                            <h3 class="mb-0" id="successfulAlerts">{{ stats.successful_alerts or 0 }}</h3>
+                            <p class="mb-0">Successful</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-times-circle fa-2x me-3"></i>
+                        <div>
+                            <h3 class="mb-0" id="failedAlerts">{{ stats.failed_alerts or 0 }}</h3>
+                            <p class="mb-0">Failed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-clock fa-2x me-3"></i>
+                        <div>
+                            <h3 class="mb-0">{{ ((stats.successful_alerts or 0) / (stats.total_alerts or 1) * 100)|round(1) }}%</h3>
+                            <p class="mb-0">Success Rate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Filters -->
+        <div class="col-lg-3">
+            <div class="card filter-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filters
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Time Range</label>
+                        <select class="form-select" id="timeRangeFilter">
+                            <option value="today">Today</option>
+                            <option value="week" selected>Last 7 Days</option>
+                            <option value="month">Last 30 Days</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="all">All Statuses</option>
+                            <option value="success">Successful Only</option>
+                            <option value="failed">Failed Only</option>
+                            <option value="pending">Pending Only</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Strategy</label>
+                        <select class="form-select" id="strategyFilter">
+                            <option value="all">All Strategies</option>
+                            <!-- Options populated by JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Symbol</label>
+                        <input type="text" class="form-control" id="symbolFilter" placeholder="e.g., AAPL, TSLA">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Alert Type</label>
+                        <select class="form-select" id="typeFilter">
+                            <option value="all">All Types</option>
+                            <option value="buy">Buy Signals</option>
+                            <option value="sell">Sell Signals</option>
+                            <option value="close">Close Positions</option>
+                            <option value="stop_loss">Stop Loss</option>
+                            <option value="take_profit">Take Profit</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="applyFilters">
+                            <i class="fas fa-search me-2"></i>Apply Filters
+                        </button>
+                        <button class="btn btn-outline-secondary" id="clearFilters">
+                            <i class="fas fa-times me-2"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alerts List -->
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Alert History</h5>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="viewMode" id="listView" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="listView">
+                                    <i class="fas fa-list"></i>
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="viewMode" id="timelineView" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="timelineView">
+                                    <i class="fas fa-clock"></i>
+                                </label>
+                            </div>
+                            <button class="btn btn-outline-success btn-sm" id="refreshAlerts">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" id="alertsContainer">
+                    <!-- Alerts will be loaded here -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading alerts...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <nav class="mt-3" id="paginationContainer" style="display: none;">
+                <ul class="pagination justify-content-center" id="pagination">
+                    <!-- Pagination will be populated by JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Test Alert Modal -->
+<div class="modal fade" id="testAlertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Test Alert</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="testAlertForm">
+                    <div class="mb-3">
+                        <label class="form-label">Strategy</label>
+                        <select class="form-select" name="strategy_id" required>
+                            <option value="">Select a strategy...</option>
+                            <!-- Options populated by JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Symbol</label>
+                        <input type="text" class="form-control" name="symbol" value="AAPL" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Action</label>
+                        <select class="form-select" name="action" required>
+                            <option value="buy">Buy</option>
+                            <option value="sell">Sell</option>
+                            <option value="close">Close Position</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" name="quantity" value="10" min="1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Price (Optional)</label>
+                        <input type="number" class="form-control" name="price" step="0.01" placeholder="Market price if empty">
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This will send a test alert to your selected strategy for testing purposes.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="sendTestAlert">
+                    <i class="fas fa-paper-plane me-2"></i>Send Test Alert
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Details Modal -->
+<div class="modal fade" id="alertDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Alert Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="alertDetailsContent">
+                <!-- Alert details will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let alerts = [];
+let strategies = [];
+let currentPage = 1;
+let itemsPerPage = 20;
+let totalPages = 1;
+let currentFilters = {};
+
+$(document).ready(function() {
+    loadStrategies();
+    loadAlerts();
+    
+    // Event listeners
+    $('#applyFilters').click(applyFilters);
+    $('#clearFilters').click(clearFilters);
+    $('#refreshAlerts').click(() => loadAlerts());
+    $('input[name="viewMode"]').change(function() {
+        displayAlerts(alerts);
+    });
+    $('#sendTestAlert').click(sendTestAlert);
+});
+
+function loadStrategies() {
+    $.get('/api/v1/strategies/', function(data) {
+        strategies = data;
+        populateStrategySelectors();
+    });
+}
+
+function populateStrategySelectors() {
+    const selectors = ['#strategyFilter', 'select[name="strategy_id"]'];
+    
+    selectors.forEach(selector => {
+        const element = $(selector);
+        const isFilter = selector.includes('Filter');
+        
+        if (isFilter) {
+            element.empty().append('<option value="all">All Strategies</option>');
+        } else {
+            element.empty().append('<option value="">Select a strategy...</option>');
+        }
+        
+        strategies.forEach(strategy => {
+            element.append(`<option value="${strategy.id}">${strategy.name}</option>`);
+        });
+    });
+}
+
+function loadAlerts(page = 1) {
+    currentPage = page;
+    $('#refreshAlerts i').addClass('fa-spin');
+    
+    const params = new URLSearchParams({
+        page: page,
+        per_page: itemsPerPage,
+        ...currentFilters
+    });
+    
+    $.get(`/api/v1/alerts/?${params}`, function(data) {
+        alerts = data.alerts || [];
+        totalPages = data.total_pages || 1;
+        displayAlerts(alerts);
+        updatePagination();
+        updateStats(data.stats);
+    }).fail(function() {
+        showToast('Error loading alerts', 'error');
+    }).always(function() {
+        $('#refreshAlerts i').removeClass('fa-spin');
+    });
+}
+
+function displayAlerts(alertsToShow) {
+    const container = $('#alertsContainer');
+    const isTimelineView = $('#timelineView').is(':checked');
+    
+    if (alertsToShow.length === 0) {
+        container.html(`
+            <div class="text-center py-5">
+                <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                <h4>No Alerts Found</h4>
+                <p class="text-muted">No alerts match your current filters</p>
+            </div>
+        `);
+        return;
+    }
+    
+    if (isTimelineView) {
+        displayTimelineView(alertsToShow);
+    } else {
+        displayListView(alertsToShow);
+    }
+}
+
+function displayListView(alertsToShow) {
+    const container = $('#alertsContainer');
+    let html = '';
+    
+    alertsToShow.forEach(alert => {
+        const statusClass = getStatusClass(alert.status);
+        const statusIcon = getStatusIcon(alert.status);
+        const timeAgo = moment(alert.created_at).fromNow();
+        
+        html += `
+            <div class="alert-item ${statusClass} p-3 mb-3 border rounded cursor-pointer" onclick="showAlertDetails('${alert.id}')">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-center">
+                        <span class="alert-status ${statusClass}"></span>
+                        <div>
+                            <h6 class="mb-1">
+                                ${alert.action.toUpperCase()} ${alert.symbol} 
+                                ${alert.quantity ? `(${alert.quantity} shares)` : ''}
+                            </h6>
+                            <small class="text-muted">
+                                <i class="fas fa-chart-line me-1"></i>${alert.strategy?.name || 'Unknown Strategy'}
+                                <i class="fas fa-clock ms-3 me-1"></i>${timeAgo}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="text-end">
+                        <span class="badge alert-badge bg-${statusClass === 'success' ? 'success' : (statusClass === 'failed' ? 'danger' : 'warning')}">
+                            <i class="fas fa-${statusIcon} me-1"></i>${alert.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                        ${alert.price ? `<div class="small text-muted mt-1">$${parseFloat(alert.price).toFixed(2)}</div>` : ''}
+                    </div>
+                </div>
+                
+                ${alert.error_message ? `
+                    <div class="mt-2">
+                        <small class="text-danger">
+                            <i class="fas fa-exclamation-triangle me-1"></i>${alert.error_message}
+                        </small>
+                    </div>
+                ` : ''}
+                
+                ${alert.order_id ? `
+                    <div class="mt-2">
+                        <small class="text-info">
+                            <i class="fas fa-receipt me-1"></i>Order ID: ${alert.order_id}
+                        </small>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    });
+    
+    container.html(html);
+}
+
+function displayTimelineView(alertsToShow) {
+    const container = $('#alertsContainer');
+    let html = '<div class="timeline">';
+    
+    alertsToShow.forEach((alert, index) => {
+        const statusClass = getStatusClass(alert.status);
+        const statusIcon = getStatusIcon(alert.status);
+        const time = moment(alert.created_at).format('HH:mm');
+        const date = moment(alert.created_at).format('MMM DD');
+        
+        html += `
+            <div class="timeline-item">
+                <div class="timeline-marker ${statusClass}"></div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">
+                                ${alert.action.toUpperCase()} ${alert.symbol}
+                                ${alert.quantity ? `(${alert.quantity})` : ''}
+                            </h6>
+                            <small class="text-muted">${time} - ${date}</small>
+                        </div>
+                        
+                        <p class="mb-2 text-muted small">
+                            <i class="fas fa-chart-line me-1"></i>${alert.strategy?.name || 'Unknown'}
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-${statusClass === 'success' ? 'success' : (statusClass === 'failed' ? 'danger' : 'warning')}">
+                                <i class="fas fa-${statusIcon} me-1"></i>${alert.status.replace('_', ' ')}
+                            </span>
+                            
+                            ${alert.price ? `<span class="fw-bold">$${parseFloat(alert.price).toFixed(2)}</span>` : ''}
+                        </div>
+                        
+                        ${alert.error_message ? `
+                            <div class="mt-2">
+                                <small class="text-danger">${alert.error_message}</small>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.html(html);
+}
+
+function getStatusClass(status) {
+    switch(status) {
+        case 'executed':
+        case 'success': return 'success';
+        case 'failed':
+        case 'error': return 'failed';
+        default: return 'pending';
+    }
+}
+
+function getStatusIcon(status) {
+    switch(status) {
+        case 'executed':
+        case 'success': return 'check';
+        case 'failed':
+        case 'error': return 'times';
+        default: return 'clock';
+    }
+}
+
+function applyFilters() {
+    currentFilters = {
+        time_range: $('#timeRangeFilter').val(),
+        status: $('#statusFilter').val(),
+        strategy_id: $('#strategyFilter').val(),
+        symbol: $('#symbolFilter').val().trim(),
+        alert_type: $('#typeFilter').val()
+    };
+    
+    // Remove empty filters
+    Object.keys(currentFilters).forEach(key => {
+        if (!currentFilters[key] || currentFilters[key] === 'all') {
+            delete currentFilters[key];
+        }
+    });
+    
+    loadAlerts(1);
+}
+
+function clearFilters() {
+    $('#timeRangeFilter').val('week');
+    $('#statusFilter').val('all');
+    $('#strategyFilter').val('all');
+    $('#symbolFilter').val('');
+    $('#typeFilter').val('all');
+    
+    currentFilters = {};
+    loadAlerts(1);
+}
+
+function updatePagination() {
+    const container = $('#paginationContainer');
+    const pagination = $('#pagination');
+    
+    if (totalPages <= 1) {
+        container.hide();
+        return;
+    }
+    
+    container.show();
+    pagination.empty();
+    
+    // Previous button
+    pagination.append(`
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="loadAlerts(${currentPage - 1})">Previous</a>
+        </li>
+    `);
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        pagination.append(`
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="loadAlerts(${i})">${i}</a>
+            </li>
+        `);
+    }
+    
+    // Next button
+    pagination.append(`
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="loadAlerts(${currentPage + 1})">Next</a>
+        </li>
+    `);
+}
+
+function updateStats(stats) {
+    if (stats) {
+        $('#totalAlerts').text(stats.total || 0);
+        $('#successfulAlerts').text(stats.successful || 0);
+        $('#failedAlerts').text(stats.failed || 0);
+    }
+}
+
+function sendTestAlert() {
+    const formData = new FormData($('#testAlertForm')[0]);
+    const data = Object.fromEntries(formData.entries());
+    
+    $('#sendTestAlert').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Sending...');
+    
+    $.ajax({
+        url: '/api/v1/alerts/test',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function() {
+            $('#testAlertModal').modal('hide');
+            showToast('Test alert sent successfully!', 'success');
+            setTimeout(() => loadAlerts(), 1000);
+        },
+        error: function() {
+            showToast('Error sending test alert', 'error');
+        },
+        complete: function() {
+            $('#sendTestAlert').prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Send Test Alert');
+        }
+    });
+}
+
+function showAlertDetails(alertId) {
+    const alert = alerts.find(a => a.id === alertId);
+    if (!alert) return;
+    
+    const content = $('#alertDetailsContent');
+    const statusClass = getStatusClass(alert.status);
+    
+    content.html(`
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Basic Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Symbol:</strong></td>
+                        <td>${alert.symbol}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Action:</strong></td>
+                        <td>${alert.action.toUpperCase()}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Quantity:</strong></td>
+                        <td>${alert.quantity || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Price:</strong></td>
+                        <td>${alert.price ? '$' + parseFloat(alert.price).toFixed(2) : 'Market Price'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>
+                            <span class="badge bg-${statusClass === 'success' ? 'success' : (statusClass === 'failed' ? 'danger' : 'warning')}">
+                                ${alert.status.replace('_', ' ').toUpperCase()}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="col-md-6">
+                <h6>Execution Details</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Strategy:</strong></td>
+                        <td>${alert.strategy?.name || 'Unknown'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Received:</strong></td>
+                        <td>${moment(alert.created_at).format('YYYY-MM-DD HH:mm:ss')}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Processed:</strong></td>
+                        <td>${alert.processed_at ? moment(alert.processed_at).format('YYYY-MM-DD HH:mm:ss') : 'Not processed'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Order ID:</strong></td>
+                        <td>${alert.order_id || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Source IP:</strong></td>
+                        <td>${alert.source_ip || 'N/A'}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        ${alert.error_message ? `
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6 class="text-danger">Error Details</h6>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        ${alert.error_message}
+                    </div>
+                </div>
+            </div>
+        ` : ''}
+        
+        ${alert.raw_data ? `
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6>Raw Alert Data</h6>
+                    <pre class="bg-light p-3 rounded"><code>${JSON.stringify(JSON.parse(alert.raw_data), null, 2)}</code></pre>
+                </div>
+            </div>
+        ` : ''}
+    `);
+    
+    $('#alertDetailsModal').modal('show');
+}
+
+function showToast(message, type = 'info') {
+    const toastClass = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : 'bg-info');
+    const toast = $(`
+        <div class="toast align-items-center text-white ${toastClass} border-0 position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999;">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    toast.toast({ delay: 3000 }).toast('show');
+    
+    toast.on('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
+
+// Include moment.js for time formatting
+if (typeof moment === 'undefined') {
+    $('head').append('<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>');
+}
+</script>
+{% endblock %}

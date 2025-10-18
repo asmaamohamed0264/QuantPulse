@@ -1,0 +1,1075 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings - QuantPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+.settings-section {
+    border-left: 4px solid #007bff;
+    transition: all 0.2s ease;
+}
+
+.settings-section:hover {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.settings-nav .nav-link {
+    color: #495057;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.settings-nav .nav-link:hover,
+.settings-nav .nav-link.active {
+    color: #007bff;
+    border-left-color: #007bff;
+    background-color: rgba(0,123,255,0.1);
+}
+
+.api-key-display {
+    font-family: 'Courier New', monospace;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    word-break: break-all;
+}
+
+.danger-zone {
+    border-left-color: #dc3545;
+}
+
+.success-zone {
+    border-left-color: #28a745;
+}
+
+.warning-zone {
+    border-left-color: #ffc107;
+}
+
+.notification-toggle {
+    transition: all 0.2s ease;
+}
+
+.security-badge {
+    font-size: 0.875rem;
+}
+
+.activity-item {
+    border-left: 3px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+    border-left-color: #007bff;
+    background-color: rgba(0,123,255,0.05);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Account Settings</h2>
+                    <p class="text-muted mb-0">Manage your profile, security, and preferences</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary" id="resetAllSettings">
+                        <i class="fas fa-undo me-2"></i>Reset All
+                    </button>
+                    <button class="btn btn-success" id="saveAllSettings">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Settings Navigation -->
+        <div class="col-lg-3">
+            <div class="card sticky-top" style="top: 1rem;">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </h6>
+                </div>
+                <div class="list-group list-group-flush settings-nav">
+                    <a class="list-group-item list-group-item-action nav-link active" href="#profile" data-bs-toggle="pill">
+                        <i class="fas fa-user me-2"></i>Profile
+                    </a>
+                    <a class="list-group-item list-group-item-action nav-link" href="#security" data-bs-toggle="pill">
+                        <i class="fas fa-shield-alt me-2"></i>Security
+                    </a>
+                    <a class="list-group-item list-group-item-action nav-link" href="#api-keys" data-bs-toggle="pill">
+                        <i class="fas fa-key me-2"></i>API Keys
+                    </a>
+                    <a class="list-group-item list-group-item-action nav-link" href="#notifications" data-bs-toggle="pill">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </a>
+                    <a class="list-group-item list-group-item-action nav-link" href="#trading" data-bs-toggle="pill">
+                        <i class="fas fa-chart-line me-2"></i>Trading
+                    </a>
+                    <a class="list-group-item list-group-item-action nav-link" href="#billing" data-bs-toggle="pill">
+                        <i class="fas fa-credit-card me-2"></i>Billing
+                    </a>
+                    <a class="list-group-item list-group-item-action nav-link" href="#activity" data-bs-toggle="pill">
+                        <i class="fas fa-history me-2"></i>Activity Log
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- Profile Settings -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="card settings-section mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user me-2"></i>Profile Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="profileForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" name="full_name" 
+                                                   value="{{ user.full_name or '' }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Email Address</label>
+                                            <input type="email" class="form-control" name="email" 
+                                                   value="{{ user.email }}" required>
+                                            <div class="form-text">
+                                                {% if user.is_email_verified %}
+                                                    <span class="text-success">
+                                                        <i class="fas fa-check-circle me-1"></i>Verified
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-warning">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>Not verified
+                                                        <a href="#" class="ms-2" onclick="sendVerificationEmail()">Send verification</a>
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Phone Number (Optional)</label>
+                                            <input type="tel" class="form-control" name="phone" 
+                                                   value="{{ user.phone or '' }}" placeholder="+1 234 567 8900">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Timezone</label>
+                                            <select class="form-select" name="timezone">
+                                                <option value="UTC">UTC (Coordinated Universal Time)</option>
+                                                <option value="America/New_York">Eastern Time (ET)</option>
+                                                <option value="America/Chicago">Central Time (CT)</option>
+                                                <option value="America/Denver">Mountain Time (MT)</option>
+                                                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                                <option value="Europe/London">London (GMT/BST)</option>
+                                                <option value="Europe/Paris">Paris (CET/CEST)</option>
+                                                <option value="Asia/Tokyo">Tokyo (JST)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Trading Experience</label>
+                                    <select class="form-select" name="trading_experience">
+                                        <option value="beginner">Beginner (Less than 1 year)</option>
+                                        <option value="intermediate">Intermediate (1-5 years)</option>
+                                        <option value="advanced">Advanced (5+ years)</option>
+                                        <option value="professional">Professional Trader</option>
+                                    </select>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetForm('profileForm')">Reset</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Update Profile
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="tab-pane fade" id="security">
+                    <div class="card settings-section mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>Password & Security
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="passwordForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" name="current_password" required>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">New Password</label>
+                                            <input type="password" class="form-control" name="new_password" 
+                                                   minlength="8" required>
+                                            <div class="form-text">Minimum 8 characters</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Confirm New Password</label>
+                                            <input type="password" class="form-control" name="confirm_password" 
+                                                   minlength="8" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card settings-section mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Two-Factor Authentication</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h6>Authenticator App</h6>
+                                    <p class="text-muted mb-0">Add extra security with TOTP authentication</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable2FA" 
+                                           {% if user.is_2fa_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable2FA">
+                                        {% if user.is_2fa_enabled %}Enabled{% else %}Disabled{% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            {% if not user.is_2fa_enabled %}
+                            <button class="btn btn-success" onclick="setup2FA()">
+                                <i class="fas fa-mobile-alt me-2"></i>Setup 2FA
+                            </button>
+                            {% else %}
+                            <button class="btn btn-danger" onclick="disable2FA()">
+                                <i class="fas fa-times me-2"></i>Disable 2FA
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card settings-section danger-zone">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h6>Delete Account</h6>
+                            <p class="text-muted">
+                                Permanently delete your account and all associated data. This action cannot be undone.
+                            </p>
+                            <button class="btn btn-outline-danger" onclick="deleteAccount()">
+                                <i class="fas fa-trash me-2"></i>Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Keys -->
+                <div class="tab-pane fade" id="api-keys">
+                    <div class="card settings-section mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-key me-2"></i>API Keys
+                            </h5>
+                            <button class="btn btn-primary" onclick="generateAPIKey()">
+                                <i class="fas fa-plus me-2"></i>Generate New Key
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Use these API keys to integrate with external services or build custom applications.
+                            </div>
+
+                            <div id="apiKeysList">
+                                <!-- API keys will be loaded here -->
+                                <div class="text-center py-4">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Loading API keys...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card settings-section mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bell me-2"></i>Notification Preferences
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="notificationForm">
+                                <h6 class="mb-3">Email Notifications</h6>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" id="emailTrades" name="email_trades" checked>
+                                            <label class="form-check-label" for="emailTrades">
+                                                <strong>Trade Executions</strong>
+                                                <div class="text-muted small">Get notified when trades are executed</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" id="emailErrors" name="email_errors" checked>
+                                            <label class="form-check-label" for="emailErrors">
+                                                <strong>Trade Errors</strong>
+                                                <div class="text-muted small">Get notified when trades fail</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" id="emailAlerts" name="email_alerts">
+                                            <label class="form-check-label" for="emailAlerts">
+                                                <strong>Daily Summary</strong>
+                                                <div class="text-muted small">Daily trading performance summary</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" id="emailSecurity" name="email_security" checked>
+                                            <label class="form-check-label" for="emailSecurity">
+                                                <strong>Security Alerts</strong>
+                                                <div class="text-muted small">Login attempts and security events</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <h6 class="mb-3">Push Notifications</h6>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Push notifications require browser permission and are currently in beta.
+                                </div>
+
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="pushEnabled" name="push_enabled">
+                                    <label class="form-check-label" for="pushEnabled">
+                                        <strong>Enable Push Notifications</strong>
+                                    </label>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Preferences
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Settings -->
+                <div class="tab-pane fade" id="trading">
+                    <div class="card settings-section mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>Trading Preferences
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="tradingForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Default Risk per Trade (%)</label>
+                                            <input type="number" class="form-control" name="default_risk" 
+                                                   min="0.1" max="10" step="0.1" value="2.0">
+                                            <div class="form-text">Percentage of account to risk per trade</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Max Daily Loss ($)</label>
+                                            <input type="number" class="form-control" name="max_daily_loss" 
+                                                   min="0" step="50" value="500">
+                                            <div class="form-text">Stop all trading after this loss</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Max Concurrent Positions</label>
+                                            <input type="number" class="form-control" name="max_positions" 
+                                                   min="1" max="50" value="5">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Position Size Method</label>
+                                            <select class="form-select" name="position_size_method">
+                                                <option value="fixed">Fixed Dollar Amount</option>
+                                                <option value="percent">Percentage of Account</option>
+                                                <option value="risk_based" selected>Risk-Based Sizing</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Trading Hours (UTC)</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <span class="input-group-text">From</span>
+                                                <input type="time" class="form-control" name="trading_start" value="09:30">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <span class="input-group-text">To</span>
+                                                <input type="time" class="form-control" name="trading_end" value="16:00">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Only execute trades during these hours</div>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="weekendsEnabled" name="weekends_enabled">
+                                    <label class="form-check-label" for="weekendsEnabled">
+                                        Allow weekend trading (Crypto only)
+                                    </label>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Trading Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing -->
+                <div class="tab-pane fade" id="billing">
+                    <div class="card settings-section mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-credit-card me-2"></i>Billing & Subscription
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6>Current Plan</h6>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <span class="badge bg-primary fs-6 me-3">
+                                            {{ user.subscription.plan_name if user.subscription else 'Free' }}
+                                        </span>
+                                        <div>
+                                            <div class="fw-bold">
+                                                ${{ user.subscription.amount if user.subscription else '0' }}/month
+                                            </div>
+                                            {% if user.subscription and user.subscription.next_billing_date %}
+                                            <small class="text-muted">
+                                                Next billing: {{ user.subscription.next_billing_date.strftime('%B %d, %Y') }}
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-outline-primary" onclick="viewPlans()">
+                                            <i class="fas fa-arrow-up me-2"></i>Upgrade Plan
+                                        </button>
+                                        {% if user.subscription %}
+                                        <button class="btn btn-outline-warning" onclick="manageBilling()">
+                                            <i class="fas fa-cog me-2"></i>Manage Billing
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6>Usage This Month</h6>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar" role="progressbar" style="width: 45%">45%</div>
+                                            </div>
+                                            <small class="text-muted">450 / 1000 alerts</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card settings-section">
+                        <div class="card-header">
+                            <h5 class="mb-0">Billing History</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                No billing history available
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Log -->
+                <div class="tab-pane fade" id="activity">
+                    <div class="card settings-section">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>Account Activity
+                            </h5>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="loadActivity()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="activityList">
+                                <!-- Activity items will be loaded here -->
+                                <div class="text-center py-4">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Loading activity...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2FA Setup Modal -->
+<div class="modal fade" id="setup2FAModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Setup Two-Factor Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="qrCodeStep">
+                    <p>1. Install an authenticator app (Google Authenticator, Authy, etc.)</p>
+                    <p>2. Scan this QR code with your authenticator app:</p>
+                    <div class="text-center mb-3">
+                        <div id="qrCode" class="d-inline-block p-3 border rounded"></div>
+                    </div>
+                    <p>3. Enter the 6-digit code from your app:</p>
+                    <input type="text" class="form-control" id="twoFactorCode" placeholder="123456" maxlength="6">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="verify2FA()">
+                    <i class="fas fa-check me-2"></i>Verify & Enable
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Key Modal -->
+<div class="modal fade" id="apiKeyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New API Key Generated</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> This is the only time you'll see this key. Copy it now!
+                </div>
+                
+                <label class="form-label">API Key:</label>
+                <div class="input-group">
+                    <input type="text" class="form-control api-key-display" id="newAPIKey" readonly>
+                    <button class="btn btn-outline-secondary" onclick="copyAPIKey()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    I've Saved the Key
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Load initial data
+    loadAPIKeys();
+    loadActivity();
+    
+    // Form handlers
+    $('#profileForm').on('submit', handleProfileUpdate);
+    $('#passwordForm').on('submit', handlePasswordChange);
+    $('#notificationForm').on('submit', handleNotificationUpdate);
+    $('#tradingForm').on('submit', handleTradingUpdate);
+});
+
+function handleProfileUpdate(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    $.ajax({
+        url: '/api/v1/user/profile',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function() {
+            showToast('Profile updated successfully!', 'success');
+        },
+        error: function() {
+            showToast('Error updating profile', 'error');
+        }
+    });
+}
+
+function handlePasswordChange(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    if (data.new_password !== data.confirm_password) {
+        showToast('Passwords do not match', 'error');
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/v1/user/password',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            current_password: data.current_password,
+            new_password: data.new_password
+        }),
+        success: function() {
+            showToast('Password changed successfully!', 'success');
+            $('#passwordForm')[0].reset();
+        },
+        error: function() {
+            showToast('Error changing password', 'error');
+        }
+    });
+}
+
+function handleNotificationUpdate(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    $.ajax({
+        url: '/api/v1/user/notifications',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function() {
+            showToast('Notification preferences saved!', 'success');
+        },
+        error: function() {
+            showToast('Error saving preferences', 'error');
+        }
+    });
+}
+
+function handleTradingUpdate(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    $.ajax({
+        url: '/api/v1/user/trading-settings',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function() {
+            showToast('Trading settings saved!', 'success');
+        },
+        error: function() {
+            showToast('Error saving trading settings', 'error');
+        }
+    });
+}
+
+function loadAPIKeys() {
+    $.get('/api/v1/user/api-keys', function(data) {
+        displayAPIKeys(data);
+    }).fail(function() {
+        $('#apiKeysList').html('<p class="text-muted">Error loading API keys</p>');
+    });
+}
+
+function displayAPIKeys(keys) {
+    const container = $('#apiKeysList');
+    
+    if (keys.length === 0) {
+        container.html(`
+            <div class="text-center py-4">
+                <i class="fas fa-key fa-3x text-muted mb-3"></i>
+                <h6>No API Keys</h6>
+                <p class="text-muted">Generate your first API key to get started</p>
+            </div>
+        `);
+        return;
+    }
+    
+    let html = '';
+    keys.forEach(key => {
+        const maskedKey = key.key.substring(0, 8) + '...' + key.key.substring(key.key.length - 8);
+        const statusBadge = key.is_active ? 
+            '<span class="badge bg-success">Active</span>' : 
+            '<span class="badge bg-secondary">Inactive</span>';
+        
+        html += `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${key.name || 'API Key'}</h6>
+                            <div class="api-key-display mb-2">${maskedKey}</div>
+                            <small class="text-muted">
+                                Created: ${moment(key.created_at).format('MMM DD, YYYY')} | 
+                                Last used: ${key.last_used ? moment(key.last_used).fromNow() : 'Never'}
+                            </small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            ${statusBadge}
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="toggleAPIKey('${key.id}', ${!key.is_active})">
+                                            <i class="fas fa-${key.is_active ? 'pause' : 'play'} me-2"></i>
+                                            ${key.is_active ? 'Deactivate' : 'Activate'}
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" onclick="deleteAPIKey('${key.id}')">
+                                            <i class="fas fa-trash me-2"></i>Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.html(html);
+}
+
+function generateAPIKey() {
+    const name = prompt('Enter a name for this API key (optional):');
+    
+    $.ajax({
+        url: '/api/v1/user/api-keys',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ name: name || 'API Key' }),
+        success: function(data) {
+            $('#newAPIKey').val(data.key);
+            $('#apiKeyModal').modal('show');
+            loadAPIKeys();
+        },
+        error: function() {
+            showToast('Error generating API key', 'error');
+        }
+    });
+}
+
+function copyAPIKey() {
+    const input = document.getElementById('newAPIKey');
+    input.select();
+    document.execCommand('copy');
+    
+    showToast('API key copied to clipboard!', 'success');
+}
+
+function toggleAPIKey(keyId, activate) {
+    $.ajax({
+        url: `/api/v1/user/api-keys/${keyId}/${activate ? 'activate' : 'deactivate'}`,
+        method: 'POST',
+        success: function() {
+            showToast(`API key ${activate ? 'activated' : 'deactivated'}!`, 'success');
+            loadAPIKeys();
+        },
+        error: function() {
+            showToast('Error updating API key', 'error');
+        }
+    });
+}
+
+function deleteAPIKey(keyId) {
+    if (!confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
+        return;
+    }
+    
+    $.ajax({
+        url: `/api/v1/user/api-keys/${keyId}`,
+        method: 'DELETE',
+        success: function() {
+            showToast('API key deleted!', 'success');
+            loadAPIKeys();
+        },
+        error: function() {
+            showToast('Error deleting API key', 'error');
+        }
+    });
+}
+
+function loadActivity() {
+    $.get('/api/v1/user/activity', function(data) {
+        displayActivity(data);
+    }).fail(function() {
+        $('#activityList').html('<p class="text-muted">Error loading activity</p>');
+    });
+}
+
+function displayActivity(activities) {
+    const container = $('#activityList');
+    
+    if (activities.length === 0) {
+        container.html(`
+            <div class="text-center py-4">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <h6>No Activity</h6>
+                <p class="text-muted">Your account activity will appear here</p>
+            </div>
+        `);
+        return;
+    }
+    
+    let html = '';
+    activities.forEach(activity => {
+        const icon = getActivityIcon(activity.type);
+        const timeAgo = moment(activity.created_at).fromNow();
+        
+        html += `
+            <div class="activity-item p-3 mb-3 rounded">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-${icon} me-3 mt-1 text-primary"></i>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${activity.description}</h6>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">${activity.details || ''}</small>
+                            <small class="text-muted">${timeAgo}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.html(html);
+}
+
+function getActivityIcon(type) {
+    const icons = {
+        'login': 'sign-in-alt',
+        'logout': 'sign-out-alt',
+        'password_change': 'key',
+        'api_key_generated': 'key',
+        'profile_update': 'user-edit',
+        'trade_executed': 'chart-line',
+        'settings_updated': 'cog',
+        'default': 'info-circle'
+    };
+    
+    return icons[type] || icons.default;
+}
+
+function setup2FA() {
+    $.post('/api/v1/user/2fa/setup', function(data) {
+        // Display QR code
+        $('#qrCode').html(`<img src="${data.qr_code}" alt="QR Code">`);
+        $('#setup2FAModal').modal('show');
+    }).fail(function() {
+        showToast('Error setting up 2FA', 'error');
+    });
+}
+
+function verify2FA() {
+    const code = $('#twoFactorCode').val();
+    
+    if (!code || code.length !== 6) {
+        showToast('Please enter a valid 6-digit code', 'error');
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/v1/user/2fa/verify',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ code: code }),
+        success: function() {
+            $('#setup2FAModal').modal('hide');
+            showToast('2FA enabled successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        },
+        error: function() {
+            showToast('Invalid code. Please try again.', 'error');
+        }
+    });
+}
+
+function disable2FA() {
+    if (!confirm('Are you sure you want to disable two-factor authentication?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/v1/user/2fa/disable',
+        method: 'POST',
+        success: function() {
+            showToast('2FA disabled successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        },
+        error: function() {
+            showToast('Error disabling 2FA', 'error');
+        }
+    });
+}
+
+function sendVerificationEmail() {
+    $.post('/api/v1/user/send-verification', function() {
+        showToast('Verification email sent!', 'success');
+    }).fail(function() {
+        showToast('Error sending verification email', 'error');
+    });
+}
+
+function deleteAccount() {
+    const confirmation = prompt('Type "DELETE" to confirm account deletion:');
+    
+    if (confirmation !== 'DELETE') {
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/v1/user/account',
+        method: 'DELETE',
+        success: function() {
+            alert('Account deleted successfully. You will be redirected to the homepage.');
+            window.location.href = '/';
+        },
+        error: function() {
+            showToast('Error deleting account', 'error');
+        }
+    });
+}
+
+function resetForm(formId) {
+    document.getElementById(formId).reset();
+}
+
+function showToast(message, type = 'info') {
+    const toastClass = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : 'bg-info');
+    const toast = $(`
+        <div class="toast align-items-center text-white ${toastClass} border-0 position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999;">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    toast.toast({ delay: 3000 }).toast('show');
+    
+    toast.on('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
+
+// Include moment.js for time formatting
+if (typeof moment === 'undefined') {
+    $('head').append('<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>');
+}
+</script>
+{% endblock %}
