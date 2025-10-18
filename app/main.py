@@ -71,7 +71,10 @@ async def root():
         "service": "QuantPulse",
         "description": "Professional Automated Trading Service",
         "version": settings.version,
-        "docs": "/docs" if settings.debug else "Contact support for documentation"
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "health": "/health",
+        "api": "/api/v1"
     }
 
 # Include API routers
