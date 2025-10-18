@@ -30,8 +30,8 @@ app = FastAPI(
     title="QuantPulse",
     description="Professional Automated Trading Service for TradingView Webhooks",
     version=settings.version,
-    docs_url="/docs" if settings.debug else None,
-    redoc_url="/redoc" if settings.debug else None,
+    docs_url="/docs",  # Always enable docs for now
+    redoc_url="/redoc",  # Always enable redoc for now
     lifespan=lifespan
 )
 
