@@ -1,132 +1,285 @@
 {% extends "base.html" %}
 
+{% block title %}Create Account - QuantPulse{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="text-center">Create Your QuantPulse Account</h4>
-                <p class="text-center text-muted mb-0">Start your 30-day free trial today</p>
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100 py-5">
+        <div class="col-md-8 col-lg-7">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold mb-2">Create Your Account</h2>
+                <p class="text-muted">Join thousands of traders using QuantPulse</p>
             </div>
-            <div class="card-body">
-                <!-- Registration Form -->
-                <form method="POST">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="first_name" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="first_name" name="first_name" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="last_name" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="last_name" name="last_name" required>
-                            </div>
-                        </div>
+            
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    {% if error %}
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-triangle me-3"></i>
+                        <div>{{ error }}</div>
                     </div>
+                    {% endif %}
                     
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required minlength="8">
-                        <div class="form-text">Password must be at least 8 characters long</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                    </div>
-
-                    <!-- Plan Selection -->
-                    <div class="mb-3">
-                        <label class="form-label">Choose Your Plan</label>
+                    <form method="post" class="needs-validation" novalidate>
                         <div class="row">
-                            <div class="col-md-4">
-                                <div class="card plan-card">
-                                    <div class="card-body text-center p-3">
-                                        <input type="radio" class="btn-check" name="plan" id="plan_basic" value="basic" {% if request.args.get('plan') == 'basic' %}checked{% endif %}>
-                                        <label class="btn btn-outline-primary w-100" for="plan_basic">
-                                            <h6>Basic</h6>
-                                            <p class="mb-0 small">$19/month</p>
-                                        </label>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="first_name" class="form-label fw-semibold">
+                                        <i class="fas fa-user me-2 text-muted"></i>First Name
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="first_name" 
+                                           name="first_name" 
+                                           placeholder="Enter your first name"
+                                           required>
+                                    <div class="invalid-feedback">
+                                        Please provide your first name.
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card plan-card">
-                                    <div class="card-body text-center p-3">
-                                        <input type="radio" class="btn-check" name="plan" id="plan_plus" value="plus" {% if request.args.get('plan') == 'plus' or not request.args.get('plan') %}checked{% endif %}>
-                                        <label class="btn btn-outline-warning w-100" for="plan_plus">
-                                            <h6>Plus</h6>
-                                            <p class="mb-0 small">$29/month</p>
-                                            <span class="badge bg-warning text-dark">Popular</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card plan-card">
-                                    <div class="card-body text-center p-3">
-                                        <input type="radio" class="btn-check" name="plan" id="plan_ultra" value="ultra" {% if request.args.get('plan') == 'ultra' %}checked{% endif %}>
-                                        <label class="btn btn-outline-success w-100" for="plan_ultra">
-                                            <h6>Ultra</h6>
-                                            <p class="mb-0 small">$39/month</p>
-                                        </label>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="last_name" class="form-label fw-semibold">
+                                        <i class="fas fa-user me-2 text-muted"></i>Last Name
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="last_name" 
+                                           name="last_name" 
+                                           placeholder="Enter your last name"
+                                           required>
+                                    <div class="invalid-feedback">
+                                        Please provide your last name.
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Terms and Conditions -->
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
-                        <label class="form-check-label" for="terms">
-                            I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>
-                        </label>
-                    </div>
-
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="newsletter" name="newsletter">
-                        <label class="form-check-label" for="newsletter">
-                            Send me trading tips and product updates
-                        </label>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-lg w-100">Start Free Trial</button>
-                </form>
-
-                <!-- Benefits Reminder -->
-                <div class="alert alert-info mt-3">
-                    <h6><i class="fas fa-gift me-2"></i>What you get:</h6>
-                    <ul class="mb-0 small">
-                        <li>30-day free trial (no credit card required)</li>
-                        <li>Access to all features during trial</li>
-                        <li>Cancel anytime with no commitments</li>
-                        <li>24/7 support to get you started</li>
-                    </ul>
+                        
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-semibold">
+                                <i class="fas fa-envelope me-2 text-muted"></i>Email Address
+                            </label>
+                            <input type="email" 
+                                   class="form-control form-control-lg" 
+                                   id="email" 
+                                   name="email" 
+                                   placeholder="Enter your email"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please provide a valid email address.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold">
+                                <i class="fas fa-lock me-2 text-muted"></i>Password
+                            </label>
+                            <div class="position-relative">
+                                <input type="password" 
+                                       class="form-control form-control-lg" 
+                                       id="password" 
+                                       name="password" 
+                                       placeholder="Create a strong password"
+                                       minlength="8"
+                                       required>
+                                <button type="button" 
+                                        class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted"
+                                        onclick="togglePassword('password')">
+                                    <i class="fas fa-eye" id="password-toggle"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback">
+                                Password must be at least 8 characters long.
+                            </div>
+                            <div class="form-text">
+                                <small>Use 8+ characters with a mix of letters, numbers & symbols</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label fw-semibold">
+                                <i class="fas fa-lock me-2 text-muted"></i>Confirm Password
+                            </label>
+                            <div class="position-relative">
+                                <input type="password" 
+                                       class="form-control form-control-lg" 
+                                       id="confirm_password" 
+                                       name="confirm_password" 
+                                       placeholder="Confirm your password"
+                                       required>
+                                <button type="button" 
+                                        class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted"
+                                        onclick="togglePassword('confirm_password')">
+                                    <i class="fas fa-eye" id="confirm_password-toggle"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="password-mismatch">
+                                Please confirm your password.
+                            </div>
+                        </div>
+                        
+                        <!-- Plan Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold mb-3">
+                                <i class="fas fa-crown me-2 text-muted"></i>Choose Your Plan
+                            </label>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <input type="radio" class="btn-check" name="plan" id="plan_basic" value="basic" {% if request.args.get('plan') == 'basic' %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary w-100 h-100 p-3 text-center" for="plan_basic">
+                                        <div class="fw-bold">Basic</div>
+                                        <div class="fs-5 fw-bold text-primary">$19</div>
+                                        <div class="small text-muted">per month</div>
+                                    </label>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="radio" class="btn-check" name="plan" id="plan_plus" value="plus" {% if request.args.get('plan') == 'plus' or not request.args.get('plan') %}checked{% endif %}>
+                                    <label class="btn btn-outline-warning w-100 h-100 p-3 text-center position-relative" for="plan_plus">
+                                        <span class="badge bg-warning text-dark position-absolute top-0 start-50 translate-middle-x" style="top: -8px !important;">Popular</span>
+                                        <div class="fw-bold mt-2">Plus</div>
+                                        <div class="fs-5 fw-bold text-warning">$29</div>
+                                        <div class="small text-muted">per month</div>
+                                    </label>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="radio" class="btn-check" name="plan" id="plan_ultra" value="ultra" {% if request.args.get('plan') == 'ultra' %}checked{% endif %}>
+                                    <label class="btn btn-outline-success w-100 h-100 p-3 text-center" for="plan_ultra">
+                                        <div class="fw-bold">Ultra</div>
+                                        <div class="fs-5 fw-bold text-success">$39</div>
+                                        <div class="small text-muted">per month</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                                <label class="form-check-label text-sm" for="terms">
+                                    I agree to the <a href="/terms" target="_blank" class="text-primary">Terms of Service</a> 
+                                    and <a href="/privacy" target="_blank" class="text-primary">Privacy Policy</a>
+                                </label>
+                                <div class="invalid-feedback">
+                                    You must agree to our terms and conditions.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="newsletter" name="newsletter">
+                                <label class="form-check-label text-sm text-muted" for="newsletter">
+                                    Send me trading tips, market insights, and product updates
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i class="fas fa-user-plus me-2"></i>Start Free Trial
+                        </button>
+                        
+                        <div class="text-center">
+                            <span class="text-muted">Already have an account?</span>
+                            <a href="/login" class="text-primary text-decoration-none fw-semibold ms-1">
+                                Sign in
+                            </a>
+                        </div>
+                    </form>
                 </div>
-
-                <!-- Login Link -->
-                <div class="text-center mt-3">
-                    <p>Already have an account? <a href="/login">Sign in here</a></p>
+            </div>
+            
+            <!-- Trial offer highlight -->
+            <div class="card border-0 bg-light mt-4">
+                <div class="card-body text-center p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="fw-bold mb-1">🎉 Start Your Free Trial</h6>
+                            <p class="text-muted mb-0 small">Full access to all features for 30 days. No credit card required.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="badge bg-success fs-6 px-3 py-2">
+                                30 Days FREE
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security badges -->
+            <div class="text-center mt-4">
+                <div class="d-flex justify-content-center align-items-center gap-4 text-muted small">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-shield-alt text-success me-2"></i>
+                        <span>256-bit SSL</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-database text-success me-2"></i>
+                        <span>Encrypted Data</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-shield text-success me-2"></i>
+                        <span>Privacy Protected</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.plan-card {
-    transition: transform 0.2s;
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const toggle = document.getElementById(inputId + '-toggle');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        toggle.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        toggle.className = 'fas fa-eye';
+    }
 }
-.plan-card:hover {
-    transform: translateY(-2px);
+
+// Password matching validation
+function validatePasswordMatch() {
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    const feedback = document.getElementById('password-mismatch');
+    
+    if (confirmPassword.value !== password.value) {
+        confirmPassword.setCustomValidity('Passwords do not match');
+        feedback.textContent = 'Passwords do not match.';
+    } else {
+        confirmPassword.setCustomValidity('');
+        feedback.textContent = 'Please confirm your password.';
+    }
 }
-</style>
+
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        const forms = document.getElementsByClassName('needs-validation');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        // Add password match validation
+        confirmPassword.addEventListener('input', validatePasswordMatch);
+        password.addEventListener('input', validatePasswordMatch);
+        
+        Array.from(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                validatePasswordMatch();
+                
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
 {% endblock %}

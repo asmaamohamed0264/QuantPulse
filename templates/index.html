@@ -1,204 +1,400 @@
 {% extends "base.html" %}
 
+{% block title %}QuantPulse - Professional Automated Trading Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23ffffff" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)" /></svg>') center/cover;
+        opacity: 0.3;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+    }
+    
+    .stats-section {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    }
+    
+    .stat-item {
+        text-align: center;
+        color: white;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .pricing-card {
+        transform: perspective(1000px) rotateX(0deg);
+        transition: all 0.3s ease;
+    }
+    
+    .pricing-card:hover {
+        transform: perspective(1000px) rotateX(5deg) translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    
+    .popular-badge {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 0.5rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Hero Section -->
-<div class="py-5 mb-4 bg-light rounded-3">
-    <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold">QuantPulse</h1>
-        <p class="col-md-8 fs-4">Professional Automated Trading Service for TradingView Webhooks</p>
-        <p class="lead">Automate your TradingView strategies with lightning-fast execution across multiple exchanges.</p>
-        {% if not user %}
-        <a class="btn btn-primary btn-lg" href="/register" role="button">Start Free Trial</a>
-        {% else %}
-        <a class="btn btn-primary btn-lg" href="/dashboard" role="button">Go to Dashboard</a>
-        {% endif %}
-    </div>
-</div>
-
-<!-- How it Works Section -->
-<div class="row mb-5">
-    <div class="col-12">
-        <h2 class="text-center mb-4">How QuantPulse Works</h2>
-        <div class="row">
-            <div class="col-md-3 text-center mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
-                        <h5>1. Choose Your Plan</h5>
-                        <p>Select the QuantPulse subscription that fits your trading needs and preferences.</p>
+<section class="hero-section text-white py-5">
+    <div class="container py-5">
+        <div class="hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-3 fw-bold mb-4">
+                        Automate Your Trading
+                        <span class="text-warning">Like a Pro</span>
+                    </h1>
+                    <p class="lead mb-4 opacity-90">
+                        Connect TradingView alerts directly to your broker accounts. Execute trades automatically with institutional-grade reliability and lightning-fast execution.
+                    </p>
+                    
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        <a href="/register" class="btn btn-warning btn-lg px-4 py-3 fw-semibold">
+                            <i class="fas fa-rocket me-2"></i>Start Free Trial
+                        </a>
+                        <a href="/pricing" class="btn btn-outline-light btn-lg px-4 py-3">
+                            <i class="fas fa-chart-bar me-2"></i>View Pricing
+                        </a>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-4 text-sm opacity-75">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span>No credit card required</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-clock text-info me-2"></i>
+                            <span>14-day free trial</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3 text-center mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <i class="fas fa-link fa-3x text-primary mb-3"></i>
-                        <h5>2. Connect Exchange</h5>
-                        <p>Effortlessly connect your exchange accounts with secure API integration.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 text-center mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <i class="fas fa-bell fa-3x text-primary mb-3"></i>
-                        <h5>3. Set Up Alerts</h5>
-                        <p>Configure TradingView alerts to send signals directly to QuantPulse.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 text-center mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <i class="fas fa-robot fa-3x text-primary mb-3"></i>
-                        <h5>4. Automated Trading</h5>
-                        <p>Relax as your strategies execute automatically with ultra-fast order processing.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Pricing Plans -->
-<div class="row mb-5">
-    <div class="col-12">
-        <h2 class="text-center mb-4">Our Trading Plans</h2>
-        <div class="row">
-            <!-- Basic Plan -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header text-center bg-primary text-white">
-                        <h4>QuantPulse Basic</h4>
-                        <h2>$19<small>/month</small></h2>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            <li><i class="fas fa-check text-success me-2"></i>Cryptocurrency Trading</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Alpaca Integration</li>
-                            <li><i class="fas fa-check text-success me-2"></i>5 Active Strategies</li>
-                            <li><i class="fas fa-check text-success me-2"></i>50 Alerts per Day</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Basic Support</li>
-                            <li><i class="fas fa-check text-success me-2"></i>30 Day Free Trial</li>
-                        </ul>
-                    </div>
-                    <div class="card-footer text-center">
-                        {% if not user %}
-                        <a href="/register?plan=basic" class="btn btn-primary">Start Free Trial</a>
-                        {% else %}
-                        <a href="/subscription" class="btn btn-outline-primary">Manage Plan</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Plus Plan -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 border-warning">
-                    <div class="card-header text-center bg-warning text-dark">
-                        <h4>QuantPulse Plus</h4>
-                        <h2>$29<small>/month</small></h2>
-                        <span class="badge bg-dark">Most Popular</span>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            <li><i class="fas fa-check text-success me-2"></i>Crypto + Stocks + Forex</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Multiple Exchange Support</li>
-                            <li><i class="fas fa-check text-success me-2"></i>20 Active Strategies</li>
-                            <li><i class="fas fa-check text-success me-2"></i>500 Alerts per Day</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Priority Support</li>
-                            <li><i class="fas fa-check text-success me-2"></i>30 Day Free Trial</li>
-                        </ul>
-                    </div>
-                    <div class="card-footer text-center">
-                        {% if not user %}
-                        <a href="/register?plan=plus" class="btn btn-warning">Start Free Trial</a>
-                        {% else %}
-                        <a href="/subscription" class="btn btn-outline-warning">Manage Plan</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ultra Plan -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 border-success">
-                    <div class="card-header text-center bg-success text-white">
-                        <h4>QuantPulse Ultra</h4>
-                        <h2>$39<small>/month</small></h2>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            <li><i class="fas fa-check text-success me-2"></i>All Asset Classes</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Prop Firm Support</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Unlimited Strategies</li>
-                            <li><i class="fas fa-check text-success me-2"></i>2000 Alerts per Day</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Premium Support</li>
-                            <li><i class="fas fa-check text-success me-2"></i>30 Day Free Trial</li>
-                        </ul>
-                    </div>
-                    <div class="card-footer text-center">
-                        {% if not user %}
-                        <a href="/register?plan=ultra" class="btn btn-success">Start Free Trial</a>
-                        {% else %}
-                        <a href="/subscription" class="btn btn-outline-success">Manage Plan</a>
-                        {% endif %}
+                
+                <div class="col-lg-6 mt-5 mt-lg-0">
+                    <div class="position-relative">
+                        <div class="bg-white bg-opacity-10 backdrop-blur rounded-4 p-4 shadow-lg">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h6 class="text-white-50 mb-0">Live Trading Dashboard</h6>
+                                <span class="badge bg-success">ACTIVE</span>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="bg-success bg-opacity-20 rounded-3 p-3 text-center">
+                                        <div class="text-success fw-bold">+$2,847.50</div>
+                                        <small class="text-white-50">Today's P&L</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="bg-info bg-opacity-20 rounded-3 p-3 text-center">
+                                        <div class="text-info fw-bold">23</div>
+                                        <small class="text-white-50">Alerts Today</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="bg-warning bg-opacity-20 rounded-3 p-3 text-center">
+                                        <div class="text-warning fw-bold">5</div>
+                                        <small class="text-white-50">Active Strategies</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="bg-primary bg-opacity-20 rounded-3 p-3 text-center">
+                                        <div class="text-primary fw-bold">98.2%</div>
+                                        <small class="text-white-50">Success Rate</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">10K+</div>
+                    <div class="text-white-50">Active Traders</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">1M+</div>
+                    <div class="text-white-50">Trades Executed</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">99.9%</div>
+                    <div class="text-white-50">Uptime</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">&lt;50ms</div>
+                    <div class="text-white-50">Avg Execution</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- Features Section -->
-<div class="row mb-5">
-    <div class="col-12">
-        <h2 class="text-center mb-4">Why Choose QuantPulse?</h2>
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5><i class="fas fa-bolt text-warning me-2"></i>Ultra-Fast Execution</h5>
-                        <p>Lightning-fast order execution with sub-second latency to maximize your trading opportunities.</p>
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Why Choose QuantPulse?</h2>
+            <p class="lead text-muted">Everything you need to automate your trading strategy</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="text-center">
+                    <div class="feature-icon bg-primary bg-opacity-10">
+                        <i class="fas fa-bolt text-primary"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">Lightning Fast Execution</h5>
+                    <p class="text-muted">Execute trades in under 50ms with our optimized infrastructure and direct broker connections.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="text-center">
+                    <div class="feature-icon bg-success bg-opacity-10">
+                        <i class="fas fa-shield-alt text-success"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">Bank-Level Security</h5>
+                    <p class="text-muted">Your API keys and trading data are protected with military-grade encryption and secure storage.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="text-center">
+                    <div class="feature-icon bg-warning bg-opacity-10">
+                        <i class="fas fa-building text-warning"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">Multiple Brokers</h5>
+                    <p class="text-muted">Connect to Alpaca, Interactive Brokers, TD Ameritrade and more. Switch between accounts seamlessly.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="text-center">
+                    <div class="feature-icon bg-info bg-opacity-10">
+                        <i class="fas fa-chart-line text-info"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">Advanced Analytics</h5>
+                    <p class="text-muted">Track performance, analyze patterns, and optimize your strategies with comprehensive reporting.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="text-center">
+                    <div class="feature-icon bg-danger bg-opacity-10">
+                        <i class="fas fa-cogs text-danger"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">Smart Risk Management</h5>
+                    <p class="text-muted">Built-in position sizing, stop-losses, and risk controls to protect your capital automatically.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="text-center">
+                    <div class="feature-icon bg-secondary bg-opacity-10">
+                        <i class="fas fa-headset text-secondary"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-3">24/7 Support</h5>
+                    <p class="text-muted">Get help when you need it with our dedicated support team and comprehensive documentation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+            <p class="lead text-muted">Get started in 3 simple steps</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;">1</div>
+                    <h5 class="fw-semibold mb-3">Connect Your Broker</h5>
+                    <p class="text-muted">Securely connect your trading account using API keys. We support all major brokers.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;">2</div>
+                    <h5 class="fw-semibold mb-3">Set Up Strategies</h5>
+                    <p class="text-muted">Create trading strategies and configure your risk parameters and position sizing rules.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;">3</div>
+                    <h5 class="fw-semibold mb-3">Send TradingView Alerts</h5>
+                    <p class="text-muted">Configure your TradingView alerts to send webhooks to QuantPulse and watch trades execute automatically.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if not user %}
+<!-- Pricing Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Choose Your Plan</h2>
+            <p class="lead text-muted">Start with a free trial, upgrade anytime. No hidden fees.</p>
+        </div>
+        
+        <div class="row justify-content-center g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="card pricing-card h-100 border-2">
+                    <div class="card-body text-center p-4">
+                        <h5 class="card-title fw-bold mb-3">Basic</h5>
+                        <div class="mb-4">
+                            <span class="h2 fw-bold text-primary">$29</span>
+                            <span class="text-muted">/month</span>
+                        </div>
+                        
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Up to 50 alerts per day</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>3 trading strategies</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>1 broker account</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Basic support</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>7-day free trial</li>
+                        </ul>
+                        
+                        <a href="/register?plan=basic" class="btn btn-outline-primary btn-lg w-100">
+                            Start Free Trial
+                        </a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5><i class="fas fa-shield-alt text-success me-2"></i>Secure & Reliable</h5>
-                        <p>Bank-grade security with encrypted API connections and robust error handling.</p>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card pricing-card h-100 border-primary border-3 position-relative">
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="card-body text-center p-4">
+                        <h5 class="card-title fw-bold mb-3">Plus</h5>
+                        <div class="mb-4">
+                            <span class="h2 fw-bold text-primary">$79</span>
+                            <span class="text-muted">/month</span>
+                        </div>
+                        
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Up to 200 alerts per day</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>10 trading strategies</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>3 broker accounts</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Priority support</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced analytics</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>14-day free trial</li>
+                        </ul>
+                        
+                        <a href="/register?plan=plus" class="btn btn-primary btn-lg w-100">
+                            Start Free Trial
+                        </a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5><i class="fas fa-chart-line text-primary me-2"></i>Multiple Asset Classes</h5>
-                        <p>Trade cryptocurrencies, stocks, forex, and more across multiple exchanges and brokers.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5><i class="fas fa-headset text-info me-2"></i>Expert Support</h5>
-                        <p>Dedicated support team to help you optimize your automated trading strategies.</p>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card pricing-card h-100 border-2">
+                    <div class="card-body text-center p-4">
+                        <h5 class="card-title fw-bold mb-3">Ultra</h5>
+                        <div class="mb-4">
+                            <span class="h2 fw-bold text-primary">$199</span>
+                            <span class="text-muted">/month</span>
+                        </div>
+                        
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Up to 1000 alerts per day</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited strategies</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>10 broker accounts</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>24/7 premium support</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Custom solutions</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>30-day free trial</li>
+                        </ul>
+                        
+                        <a href="/register?plan=ultra" class="btn btn-outline-primary btn-lg w-100">
+                            Start Free Trial
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <!-- CTA Section -->
-{% if not user %}
-<div class="py-5 mb-4 bg-primary text-white rounded-3 text-center">
-    <div class="container-fluid py-3">
-        <h2>Ready to Automate Your Trading?</h2>
-        <p class="lead">Start your 30-day free trial today. No credit card required.</p>
-        <a class="btn btn-light btn-lg" href="/register" role="button">Get Started Free</a>
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="display-6 fw-bold mb-4">Ready to Automate Your Trading?</h2>
+        <p class="lead mb-4">Join thousands of successful traders who trust QuantPulse with their automated trading.</p>
+        <a href="/register" class="btn btn-warning btn-lg px-5 py-3">
+            <i class="fas fa-rocket me-2"></i>Start Your Free Trial Now
+        </a>
+        <p class="mt-3 mb-0 opacity-75">
+            <small>No credit card required • Cancel anytime • 14-day money-back guarantee</small>
+        </p>
     </div>
-</div>
+</section>
 {% endif %}
 {% endblock %}

@@ -1,254 +1,482 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard - QuantPulse{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.dashboard-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.metric-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.strategy-status {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+.table-responsive {
+    border-radius: 8px;
+}
+
+.btn-action {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- Dashboard Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="h3 mb-0">Dashboard</h1>
-        <p class="text-muted mb-0">Welcome back, {{ user.first_name }}!</p>
-    </div>
-    <div>
-        <span class="badge bg-success fs-6 me-2">
-            <i class="fas fa-circle me-1"></i>Live
-        </span>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#testAlertModal">
-            <i class="fas fa-plus me-1"></i>Test Alert
-        </button>
-    </div>
-</div>
-
-<!-- Key Metrics Row -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ stats.total_alerts or 0 }}</h4>
-                        <p class="card-text">Total Alerts Today</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-bell fa-2x"></i>
-                    </div>
+<div class="container-fluid px-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h2 class="fw-bold mb-2">Welcome back, {{ current_user.full_name.split()[0] if current_user.full_name else current_user.email.split('@')[0] }}!</h2>
+                    <p class="text-muted mb-0">Here's your trading overview for today</p>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ stats.successful_trades or 0 }}</h4>
-                        <p class="card-text">Successful Trades</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                    </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-success fs-6 me-2 d-flex align-items-center">
+                        <i class="fas fa-circle me-2"></i>Live
+                    </span>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#syncModal">
+                        <i class="fas fa-sync-alt me-2"></i>Sync Accounts
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#testAlertModal">
+                        <i class="fas fa-plus me-2"></i>Test Alert
+                    </button>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-dark">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ stats.active_strategies or 0 }}</h4>
-                        <p class="card-text">Active Strategies</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-cogs fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">${{ account.portfolio_value or 0 | round(2) }}</h4>
-                        <p class="card-text">Portfolio Value</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-chart-line fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Main Content Row -->
-<div class="row">
-    <!-- Left Column -->
-    <div class="col-md-8">
-        <!-- Recent Alerts -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Recent Alerts</h5>
-            </div>
-            <div class="card-body">
-                {% if recent_alerts %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Strategy</th>
-                                <th>Symbol</th>
-                                <th>Action</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for alert in recent_alerts %}
-                            <tr>
-                                <td>{{ alert.created_at.strftime('%H:%M:%S') }}</td>
-                                <td>
-                                    <span class="badge bg-secondary">{{ alert.strategy_name }}</span>
-                                </td>
-                                <td><strong>{{ alert.symbol }}</strong></td>
-                                <td>
-                                    <span class="badge {% if alert.action == 'BUY' %}bg-success{% else %}bg-danger{% endif %}">
-                                        {{ alert.action }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if alert.status == 'filled' %}
-                                    <span class="badge bg-success">✓ Filled</span>
-                                    {% elif alert.status == 'pending' %}
-                                    <span class="badge bg-warning">⏳ Pending</span>
-                                    {% elif alert.status == 'failed' %}
-                                    <span class="badge bg-danger">✗ Failed</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">{{ alert.status }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No recent alerts. Your trading strategies will appear here once configured.</p>
-                    <a href="/strategies" class="btn btn-primary">Set Up Strategies</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Performance Chart -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Performance Overview</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="performanceChart" width="400" height="200"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Right Column -->
-    <div class="col-md-4">
-        <!-- Account Status -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Account Status</h5>
+    <!-- Key Metrics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="card dashboard-card metric-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="metric-value">${{ "{:,.2f}".format(portfolio_value or 0) }}</div>
+                            <div class="metric-label">Total Portfolio Value</div>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        {% if daily_change %}
+                        <small class="{% if daily_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <i class="fas fa-arrow-{% if daily_change >= 0 %}up{% else %}down{% endif %} me-1"></i>
+                            {{ "{:+.2f}%".format(daily_change) }} today
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Subscription:</span>
-                        <span class="badge bg-{% if user.subscription_plan == 'ultra' %}success{% elif user.subscription_plan == 'plus' %}warning{% else %}primary{% endif %}">
-                            {{ user.subscription_plan|title }}
-                        </span>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="card dashboard-card metric-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="metric-value">{{ stats.active_strategies or 0 }}</div>
+                            <div class="metric-label">Active Strategies</div>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-robot fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="opacity-90">
+                            {{ stats.running_strategies or 0 }} running now
+                        </small>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Trial Days Left:</span>
-                        <span class="{% if user.trial_days_remaining <= 5 %}text-warning{% endif %}">
-                            {{ user.trial_days_remaining or 0 }} days
-                        </span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="card dashboard-card metric-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="metric-value">{{ stats.total_alerts or 0 }}</div>
+                            <div class="metric-label">Alerts Today</div>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-bell fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="opacity-90">
+                            {{ stats.successful_trades or 0 }} successful trades
+                        </small>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Alerts Today:</span>
-                        <span>{{ stats.alerts_today or 0 }} / {{ user.alert_limit or '∞' }}</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="card dashboard-card metric-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="metric-value">{{ win_rate or 0 }}%</div>
+                            <div class="metric-label">Win Rate</div>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-target fa-2x opacity-75"></i>
+                        </div>
                     </div>
-                    {% if user.alert_limit %}
-                    <div class="progress mt-1" style="height: 5px;">
-                        <div class="progress-bar" style="width: {{ ((stats.alerts_today or 0) / user.alert_limit * 100)|min(100) }}%"></div>
+                    <div class="mt-2">
+                        <small class="opacity-90">
+                            Last 30 days performance
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Strategies Row -->
+    <div class="row mb-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0">Portfolio Performance</h5>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary active">7D</button>
+                            <button type="button" class="btn btn-outline-secondary">30D</button>
+                            <button type="button" class="btn btn-outline-secondary">90D</button>
+                            <button type="button" class="btn btn-outline-secondary">1Y</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <canvas id="performanceChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0">Account Status</h5>
+                    </div>
+                </div>
+                <div class="card-body px-4">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Subscription Plan:</span>
+                            <span class="badge bg-{% if current_user.subscription_plan == 'ultra' %}success{% elif current_user.subscription_plan == 'plus' %}warning{% else %}primary{% endif %} fs-6">
+                                {{ current_user.subscription_plan|title if current_user.subscription_plan else 'Basic' }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Trial Status:</span>
+                            <span class="{% if current_user.trial_days_remaining and current_user.trial_days_remaining <= 5 %}text-warning fw-bold{% else %}text-success{% endif %}">
+                                {% if current_user.trial_days_remaining %}
+                                    {{ current_user.trial_days_remaining }} days left
+                                {% else %}
+                                    Active subscription
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% if current_user.trial_days_remaining %}
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-{% if current_user.trial_days_remaining <= 5 %}warning{% else %}success{% endif %}" 
+                                 style="width: {{ (current_user.trial_days_remaining / 30 * 100)|round }}%"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Today's Usage:</span>
+                            <span>{{ stats.alerts_today or 0 }} alerts</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Connected Brokers -->
+                    <hr class="my-3">
+                    <h6 class="fw-semibold mb-3">Connected Brokers</h6>
+                    {% if brokers %}
+                        {% for broker in brokers %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <span class="fw-semibold">{{ broker.name }}</span>
+                                <br>
+                                <small class="text-muted">{{ broker.account_type or 'Live' }}</small>
+                            </div>
+                            <span class="badge {% if broker.is_connected %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if broker.is_connected %}Connected{% else %}Disconnected{% endif %}
+                            </span>
+                        </div>
+                        {% if not loop.last %}<div class="border-bottom mb-2 pb-2"></div>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-link text-muted fa-2x mb-2"></i>
+                        <p class="text-muted mb-2">No brokers connected</p>
+                        <a href="/brokers" class="btn btn-sm btn-primary">Connect Broker</a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if current_user.trial_days_remaining and current_user.trial_days_remaining <= 7 %}
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Trial Ending Soon</h6>
+                        <p class="mb-2 small">Your trial expires in {{ current_user.trial_days_remaining }} days.</p>
+                        <a href="/subscription" class="btn btn-sm btn-warning">Upgrade Now</a>
                     </div>
                     {% endif %}
                 </div>
-                
-                {% if user.trial_days_remaining and user.trial_days_remaining <= 7 %}
-                <div class="alert alert-warning mt-3">
-                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Trial Ending Soon</h6>
-                    <p class="mb-2 small">Your trial expires in {{ user.trial_days_remaining }} days.</p>
-                    <a href="/subscription" class="btn btn-sm btn-warning">Upgrade Now</a>
-                </div>
-                {% endif %}
             </div>
         </div>
+    </div>
 
-        <!-- Connected Brokers -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Connected Brokers</h5>
-            </div>
-            <div class="card-body">
-                {% if brokers %}
-                    {% for broker in brokers %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <span class="fw-bold">{{ broker.name }}</span>
-                            <br>
-                            <small class="text-muted">{{ broker.account_type }}</small>
-                        </div>
-                        <span class="badge {% if broker.is_connected %}bg-success{% else %}bg-danger{% endif %}">
-                            {% if broker.is_connected %}Connected{% else %}Disconnected{% endif %}
-                        </span>
+    <!-- Active Strategies and Recent Activity Row -->
+    <div class="row mb-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0">Active Strategies</h5>
+                        <a href="/strategies" class="btn btn-sm btn-outline-primary">View All</a>
                     </div>
-                    {% if not loop.last %}<hr>{% endif %}
-                    {% endfor %}
-                {% else %}
-                <div class="text-center">
-                    <i class="fas fa-link fa-2x text-muted mb-2"></i>
-                    <p class="text-muted mb-2">No brokers connected</p>
-                    <a href="/brokers" class="btn btn-sm btn-primary">Connect Broker</a>
                 </div>
-                {% endif %}
+                <div class="card-body p-0">
+                    {% if strategies %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 fw-semibold">Strategy</th>
+                                    <th class="border-0 fw-semibold">Status</th>
+                                    <th class="border-0 fw-semibold">Symbol</th>
+                                    <th class="border-0 fw-semibold">Performance</th>
+                                    <th class="border-0 fw-semibold">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for strategy in strategies[:5] %}
+                                <tr>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary-subtle rounded p-2 me-3">
+                                                <i class="fas fa-chart-line text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ strategy.name }}</h6>
+                                                <small class="text-muted">Created {{ strategy.created_at.strftime('%b %d') }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="strategy-status 
+                                            {% if strategy.status == 'running' %}bg-success-subtle text-success
+                                            {% elif strategy.status == 'stopped' %}bg-danger-subtle text-danger
+                                            {% elif strategy.status == 'paused' %}bg-warning-subtle text-warning
+                                            {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                            {{ strategy.status.title() if strategy.status else 'Draft' }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="fw-semibold">{{ strategy.symbol or 'N/A' }}</span>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress me-2" style="width: 60px; height: 6px;">
+                                                <div class="progress-bar bg-success" 
+                                                     style="width: 75%"></div>
+                                            </div>
+                                            <small class="text-success">
+                                                +5.2%
+                                            </small>
+                                        </div>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="btn-group btn-group-sm">
+                                            {% if strategy.status == 'running' %}
+                                            <button class="btn btn-outline-warning btn-action" onclick="pauseStrategy('{{ strategy.id }}')"
+                                                    title="Pause Strategy">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            {% else %}
+                                            <button class="btn btn-outline-success btn-action" onclick="startStrategy('{{ strategy.id }}')"
+                                                    title="Start Strategy">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            {% endif %}
+                                            <a href="/strategies/{{ strategy.id }}" class="btn btn-outline-primary btn-action"
+                                               title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted mb-2">No Active Strategies</h6>
+                        <p class="text-muted mb-3">Create your first trading strategy to get started</p>
+                        <a href="/strategies/create" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create Strategy
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="/strategies" class="btn btn-outline-primary">
-                        <i class="fas fa-cogs me-2"></i>Manage Strategies
-                    </a>
-                    <a href="/brokers" class="btn btn-outline-secondary">
-                        <i class="fas fa-link me-2"></i>Broker Accounts
-                    </a>
-                    <a href="/alerts" class="btn btn-outline-info">
-                        <i class="fas fa-bell me-2"></i>View All Alerts
-                    </a>
-                    <a href="/settings" class="btn btn-outline-dark">
-                        <i class="fas fa-cog me-2"></i>Settings
-                    </a>
+        <div class="col-xl-4 col-lg-5">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="card-title fw-bold mb-0">Recent Activity</h5>
                 </div>
+                <div class="card-body px-4">
+                    <div class="timeline">
+                        {% if recent_alerts %}
+                        {% for alert in recent_alerts[:6] %}
+                        <div class="d-flex mb-3">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="bg-{% if alert.action == 'BUY' %}success{% else %}danger{% endif %}-subtle rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="fas fa-{% if alert.action == 'BUY' %}arrow-up{% else %}arrow-down{% endif %} text-{% if alert.action == 'BUY' %}success{% else %}danger{% endif %} small"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fs-sm">{{ alert.action }} {{ alert.symbol }}</h6>
+                                <p class="text-muted mb-1 fs-sm">{{ alert.strategy_name or 'Manual Trade' }}</p>
+                                <small class="text-muted">{{ alert.created_at.strftime('%H:%M') }}</small>
+                                <span class="badge bg-{% if alert.status == 'filled' %}success{% elif alert.status == 'pending' %}warning{% else %}secondary{% endif %} ms-2 small">
+                                    {{ alert.status.title() if alert.status else 'Unknown' }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-clock text-muted fa-2x mb-3"></i>
+                            <p class="text-muted mb-0">No recent activity</p>
+                            <small class="text-muted">Your trading activities will appear here</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="card-title fw-bold mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body px-4">
+                    <div class="row g-3">
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                            <a href="/strategies/create" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                                <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                                <span>New Strategy</span>
+                            </a>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                            <a href="/brokers" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                                <i class="fas fa-link fa-2x mb-2"></i>
+                                <span>Connect Broker</span>
+                            </a>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                            <a href="/alerts" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                                <i class="fas fa-bell fa-2x mb-2"></i>
+                                <span>View Alerts</span>
+                            </a>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                            <a href="/reports" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                                <span>Reports</span>
+                            </a>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                            <a href="/settings" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                                <i class="fas fa-cog fa-2x mb-2"></i>
+                                <span>Settings</span>
+                            </a>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                            <a href="/subscription" class="btn btn-outline-dark w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                                <i class="fas fa-crown fa-2x mb-2"></i>
+                                <span>Upgrade</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sync Modal -->
+<div class="modal fade" id="syncModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sync Broker Accounts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="syncStatus" class="text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mb-0">Synchronizing accounts...</p>
+                </div>
+                <div id="syncResults" class="d-none">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -294,24 +522,30 @@
 </div>
 
 <script>
-// Performance Chart
+// Performance Chart with sample data
 const ctx = document.getElementById('performanceChart').getContext('2d');
 const performanceChart = new Chart(ctx, {
     type: 'line',
     data: {
-        labels: {{ performance_dates|safe }},
+        labels: {{ performance_dates|safe if performance_dates else "['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7']" }},
         datasets: [{
             label: 'Portfolio Value',
-            data: {{ performance_values|safe }},
-            borderColor: '#0d6efd',
-            backgroundColor: 'rgba(13, 110, 253, 0.1)',
-            tension: 0.4,
-            fill: true
+            data: {{ performance_values|safe if performance_values else "[10000, 10200, 10150, 10350, 10280, 10450, 10380]" }},
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
         scales: {
             y: {
                 beginAtZero: false,
@@ -321,18 +555,126 @@ const performanceChart = new Chart(ctx, {
                     }
                 }
             }
-        },
-        plugins: {
-            legend: {
-                display: false
-            }
         }
     }
 });
 
+// Strategy actions
+function pauseStrategy(strategyId) {
+    if (confirm('Are you sure you want to pause this strategy?')) {
+        fetch(`/api/strategies/${strategyId}/pause`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', 'Strategy paused successfully');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert('error', 'Failed to pause strategy: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', 'An error occurred while pausing the strategy');
+        });
+    }
+}
+
+function startStrategy(strategyId) {
+    if (confirm('Are you sure you want to start this strategy?')) {
+        fetch(`/api/strategies/${strategyId}/start`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', 'Strategy started successfully');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert('error', 'Failed to start strategy: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', 'An error occurred while starting the strategy');
+        });
+    }
+}
+
+// Sync accounts functionality
+function syncAccounts() {
+    fetch('/api/brokers/sync', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('syncStatus').classList.add('d-none');
+        document.getElementById('syncResults').classList.remove('d-none');
+        
+        let resultsHtml;
+        if (data.success) {
+            resultsHtml = `
+                <div class="alert alert-success d-flex align-items-center">
+                    <i class="fas fa-check-circle me-3"></i>
+                    <div>
+                        <h6 class="mb-1">Sync completed successfully!</h6>
+                        <small>Updated ${data.updated_accounts || 0} account(s)</small>
+                    </div>
+                </div>`;
+        } else {
+            resultsHtml = `
+                <div class="alert alert-warning d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle me-3"></i>
+                    <div>
+                        <h6 class="mb-1">Sync completed with warnings</h6>
+                        <small>${data.message || 'Some accounts may not have updated'}</small>
+                    </div>
+                </div>`;
+        }
+        
+        document.getElementById('syncResults').innerHTML = resultsHtml;
+        
+        setTimeout(() => {
+            location.reload();
+        }, 2000);
+    })
+    .catch(error => {
+        console.error('Sync error:', error);
+        document.getElementById('syncStatus').classList.add('d-none');
+        document.getElementById('syncResults').classList.remove('d-none');
+        document.getElementById('syncResults').innerHTML = `
+            <div class="alert alert-danger d-flex align-items-center">
+                <i class="fas fa-times-circle me-3"></i>
+                <div>
+                    <h6 class="mb-1">Sync failed</h6>
+                    <small>Please check your broker connections and try again</small>
+                </div>
+            </div>`;
+    });
+}
+
 // Test Alert Form Handler
 document.getElementById('testAlertForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
     
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
@@ -341,22 +683,92 @@ document.getElementById('testAlertForm').addEventListener('submit', function(e) 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
         },
         body: JSON.stringify(data)
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            showAlert('success', 'Test alert sent successfully!');
             bootstrap.Modal.getInstance(document.getElementById('testAlertModal')).hide();
-            location.reload(); // Refresh to show new alert
+            setTimeout(() => location.reload(), 1000);
         } else {
-            alert('Error: ' + data.message);
+            showAlert('error', 'Error: ' + (data.message || 'Failed to send test alert'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to send test alert');
+        showAlert('error', 'Failed to send test alert. Please try again.');
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     });
 });
+
+// Initialize sync when modal opens
+document.getElementById('syncModal').addEventListener('shown.bs.modal', function() {
+    // Reset modal state
+    document.getElementById('syncStatus').classList.remove('d-none');
+    document.getElementById('syncResults').classList.add('d-none');
+    
+    // Start sync after a short delay
+    setTimeout(() => {
+        syncAccounts();
+    }, 500);
+});
+
+// Utility functions
+function getCsrfToken() {
+    const token = document.querySelector('meta[name="csrf-token"]');
+    return token ? token.getAttribute('content') : '';
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+    
+    alertDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            <div class="flex-grow-1">${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Refresh dashboard data periodically
+setInterval(() => {
+    // Only refresh if no modals are open
+    const openModals = document.querySelectorAll('.modal.show');
+    if (openModals.length === 0) {
+        fetch('/api/dashboard/refresh', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.needsRefresh) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.log('Dashboard refresh check failed:', error);
+        });
+    }
+}, 30000); // Check every 30 seconds
 </script>
 {% endblock %}
