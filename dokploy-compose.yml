@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  quantpulse-postgres:
+    image: postgres:15-alpine
+    container_name: quantpulse-postgres
+    environment:
+      POSTGRES_DB: quantpulse
+      POSTGRES_USER: quantpulse_user
+      POSTGRES_PASSWORD: QuantPulse2024!SecurePass
+      POSTGRES_ROOT_PASSWORD: QuantPulse2024!RootSecurePass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - quantpulse_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quantpulse_user -d quantpulse"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  quantpulse-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quantpulse-app
+    environment:
+      # Database Connection
+      - DATABASE_URL=postgresql://quantpulse_user:QuantPulse2024!SecurePass@quantpulse-postgres:5432/quantpulse
+      
+      # Security & JWT
+      - JWT_SECRET_KEY=QuantPulse2024!SuperSecretJWTKey!RandomString123456789AbCdEf
+      - ENCRYPTION_KEY=QuantPulse2024!EncryptionKey!123456789012345678901234
+      
+      # TradingView Integration
+      - TRADINGVIEW_WEBHOOK_SECRET=QuantPulse2024!WebhookSecret!TradingView987654321
+      
+      # Alpaca Broker (Paper Trading)
+      - ALPACA_API_KEY=${ALPACA_API_KEY:-REPLACE_WITH_YOUR_ALPACA_PAPER_KEY}
+      - ALPACA_SECRET_KEY=${ALPACA_SECRET_KEY:-REPLACE_WITH_YOUR_ALPACA_PAPER_SECRET}
+      - ALPACA_BASE_URL=https://paper-api.alpaca.markets
+      
+      # Application Configuration
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DOMAIN_NAME=quantpulse.qub3.uk
+      - CORS_ORIGINS=https://quantpulse.qub3.uk,https://www.quantpulse.qub3.uk
+      - LOG_LEVEL=INFO
+      - WORKERS=2
+      
+      # Optional Security
+      - RATE_LIMIT_PER_MINUTE=60
+      - MAX_CONNECTIONS=100
+    ports:
+      - "8000:8000"
+    depends_on:
+      quantpulse-postgres:
+        condition: service_healthy
+    networks:
+      - quantpulse_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  quantpulse_network:
+    driver: bridge
