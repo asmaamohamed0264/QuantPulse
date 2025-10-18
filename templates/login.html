@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="text-center">Login to QuantPulse</h4>
+            </div>
+            <div class="card-body">
+                <!-- Login Form -->
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email address</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">Remember me</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+
+                <!-- Divider -->
+                <hr class="my-4">
+
+                <!-- Register Link -->
+                <div class="text-center">
+                    <p>Don't have an account? <a href="/register">Create one now</a></p>
+                    <p><a href="/forgot-password">Forgot your password?</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features for Non-Users -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="text-center">Why Choose QuantPulse?</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success me-2"></i>30-day free trial</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Ultra-fast trade execution</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Multiple exchange support</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Bank-grade security</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

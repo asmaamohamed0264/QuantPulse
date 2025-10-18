@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="py-5 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold">QuantPulse</h1>
+        <p class="col-md-8 fs-4">Professional Automated Trading Service for TradingView Webhooks</p>
+        <p class="lead">Automate your TradingView strategies with lightning-fast execution across multiple exchanges.</p>
+        {% if not user %}
+        <a class="btn btn-primary btn-lg" href="/register" role="button">Start Free Trial</a>
+        {% else %}
+        <a class="btn btn-primary btn-lg" href="/dashboard" role="button">Go to Dashboard</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- How it Works Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="text-center mb-4">How QuantPulse Works</h2>
+        <div class="row">
+            <div class="col-md-3 text-center mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                        <h5>1. Choose Your Plan</h5>
+                        <p>Select the QuantPulse subscription that fits your trading needs and preferences.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-link fa-3x text-primary mb-3"></i>
+                        <h5>2. Connect Exchange</h5>
+                        <p>Effortlessly connect your exchange accounts with secure API integration.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-bell fa-3x text-primary mb-3"></i>
+                        <h5>3. Set Up Alerts</h5>
+                        <p>Configure TradingView alerts to send signals directly to QuantPulse.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                        <h5>4. Automated Trading</h5>
+                        <p>Relax as your strategies execute automatically with ultra-fast order processing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing Plans -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="text-center mb-4">Our Trading Plans</h2>
+        <div class="row">
+            <!-- Basic Plan -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header text-center bg-primary text-white">
+                        <h4>QuantPulse Basic</h4>
+                        <h2>$19<small>/month</small></h2>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Cryptocurrency Trading</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Alpaca Integration</li>
+                            <li><i class="fas fa-check text-success me-2"></i>5 Active Strategies</li>
+                            <li><i class="fas fa-check text-success me-2"></i>50 Alerts per Day</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Basic Support</li>
+                            <li><i class="fas fa-check text-success me-2"></i>30 Day Free Trial</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                        {% if not user %}
+                        <a href="/register?plan=basic" class="btn btn-primary">Start Free Trial</a>
+                        {% else %}
+                        <a href="/subscription" class="btn btn-outline-primary">Manage Plan</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plus Plan -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-warning">
+                    <div class="card-header text-center bg-warning text-dark">
+                        <h4>QuantPulse Plus</h4>
+                        <h2>$29<small>/month</small></h2>
+                        <span class="badge bg-dark">Most Popular</span>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Crypto + Stocks + Forex</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Multiple Exchange Support</li>
+                            <li><i class="fas fa-check text-success me-2"></i>20 Active Strategies</li>
+                            <li><i class="fas fa-check text-success me-2"></i>500 Alerts per Day</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Priority Support</li>
+                            <li><i class="fas fa-check text-success me-2"></i>30 Day Free Trial</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                        {% if not user %}
+                        <a href="/register?plan=plus" class="btn btn-warning">Start Free Trial</a>
+                        {% else %}
+                        <a href="/subscription" class="btn btn-outline-warning">Manage Plan</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ultra Plan -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-success">
+                    <div class="card-header text-center bg-success text-white">
+                        <h4>QuantPulse Ultra</h4>
+                        <h2>$39<small>/month</small></h2>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>All Asset Classes</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Prop Firm Support</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Unlimited Strategies</li>
+                            <li><i class="fas fa-check text-success me-2"></i>2000 Alerts per Day</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Premium Support</li>
+                            <li><i class="fas fa-check text-success me-2"></i>30 Day Free Trial</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                        {% if not user %}
+                        <a href="/register?plan=ultra" class="btn btn-success">Start Free Trial</a>
+                        {% else %}
+                        <a href="/subscription" class="btn btn-outline-success">Manage Plan</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="text-center mb-4">Why Choose QuantPulse?</h2>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-bolt text-warning me-2"></i>Ultra-Fast Execution</h5>
+                        <p>Lightning-fast order execution with sub-second latency to maximize your trading opportunities.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-shield-alt text-success me-2"></i>Secure & Reliable</h5>
+                        <p>Bank-grade security with encrypted API connections and robust error handling.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-chart-line text-primary me-2"></i>Multiple Asset Classes</h5>
+                        <p>Trade cryptocurrencies, stocks, forex, and more across multiple exchanges and brokers.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-headset text-info me-2"></i>Expert Support</h5>
+                        <p>Dedicated support team to help you optimize your automated trading strategies.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+{% if not user %}
+<div class="py-5 mb-4 bg-primary text-white rounded-3 text-center">
+    <div class="container-fluid py-3">
+        <h2>Ready to Automate Your Trading?</h2>
+        <p class="lead">Start your 30-day free trial today. No credit card required.</p>
+        <a class="btn btn-light btn-lg" href="/register" role="button">Get Started Free</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

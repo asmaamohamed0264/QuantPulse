@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Dashboard</h1>
+        <p class="text-muted mb-0">Welcome back, {{ user.first_name }}!</p>
+    </div>
+    <div>
+        <span class="badge bg-success fs-6 me-2">
+            <i class="fas fa-circle me-1"></i>Live
+        </span>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#testAlertModal">
+            <i class="fas fa-plus me-1"></i>Test Alert
+        </button>
+    </div>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.total_alerts or 0 }}</h4>
+                        <p class="card-text">Total Alerts Today</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-bell fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.successful_trades or 0 }}</h4>
+                        <p class="card-text">Successful Trades</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.active_strategies or 0 }}</h4>
+                        <p class="card-text">Active Strategies</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-cogs fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">${{ account.portfolio_value or 0 | round(2) }}</h4>
+                        <p class="card-text">Portfolio Value</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-line fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Row -->
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-md-8">
+        <!-- Recent Alerts -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Alerts</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_alerts %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Strategy</th>
+                                <th>Symbol</th>
+                                <th>Action</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alert in recent_alerts %}
+                            <tr>
+                                <td>{{ alert.created_at.strftime('%H:%M:%S') }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ alert.strategy_name }}</span>
+                                </td>
+                                <td><strong>{{ alert.symbol }}</strong></td>
+                                <td>
+                                    <span class="badge {% if alert.action == 'BUY' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ alert.action }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if alert.status == 'filled' %}
+                                    <span class="badge bg-success">✓ Filled</span>
+                                    {% elif alert.status == 'pending' %}
+                                    <span class="badge bg-warning">⏳ Pending</span>
+                                    {% elif alert.status == 'failed' %}
+                                    <span class="badge bg-danger">✗ Failed</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ alert.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No recent alerts. Your trading strategies will appear here once configured.</p>
+                    <a href="/strategies" class="btn btn-primary">Set Up Strategies</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Performance Overview</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="performanceChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-md-4">
+        <!-- Account Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Account Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Subscription:</span>
+                        <span class="badge bg-{% if user.subscription_plan == 'ultra' %}success{% elif user.subscription_plan == 'plus' %}warning{% else %}primary{% endif %}">
+                            {{ user.subscription_plan|title }}
+                        </span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Trial Days Left:</span>
+                        <span class="{% if user.trial_days_remaining <= 5 %}text-warning{% endif %}">
+                            {{ user.trial_days_remaining or 0 }} days
+                        </span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Alerts Today:</span>
+                        <span>{{ stats.alerts_today or 0 }} / {{ user.alert_limit or '∞' }}</span>
+                    </div>
+                    {% if user.alert_limit %}
+                    <div class="progress mt-1" style="height: 5px;">
+                        <div class="progress-bar" style="width: {{ ((stats.alerts_today or 0) / user.alert_limit * 100)|min(100) }}%"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if user.trial_days_remaining and user.trial_days_remaining <= 7 %}
+                <div class="alert alert-warning mt-3">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Trial Ending Soon</h6>
+                    <p class="mb-2 small">Your trial expires in {{ user.trial_days_remaining }} days.</p>
+                    <a href="/subscription" class="btn btn-sm btn-warning">Upgrade Now</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Connected Brokers -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Connected Brokers</h5>
+            </div>
+            <div class="card-body">
+                {% if brokers %}
+                    {% for broker in brokers %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <span class="fw-bold">{{ broker.name }}</span>
+                            <br>
+                            <small class="text-muted">{{ broker.account_type }}</small>
+                        </div>
+                        <span class="badge {% if broker.is_connected %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if broker.is_connected %}Connected{% else %}Disconnected{% endif %}
+                        </span>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                <div class="text-center">
+                    <i class="fas fa-link fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-2">No brokers connected</p>
+                    <a href="/brokers" class="btn btn-sm btn-primary">Connect Broker</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/strategies" class="btn btn-outline-primary">
+                        <i class="fas fa-cogs me-2"></i>Manage Strategies
+                    </a>
+                    <a href="/brokers" class="btn btn-outline-secondary">
+                        <i class="fas fa-link me-2"></i>Broker Accounts
+                    </a>
+                    <a href="/alerts" class="btn btn-outline-info">
+                        <i class="fas fa-bell me-2"></i>View All Alerts
+                    </a>
+                    <a href="/settings" class="btn btn-outline-dark">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Alert Modal -->
+<div class="modal fade" id="testAlertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Test Alert</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="testAlertForm">
+                    <div class="mb-3">
+                        <label for="test_symbol" class="form-label">Symbol</label>
+                        <input type="text" class="form-control" id="test_symbol" name="symbol" value="AAPL" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="test_action" class="form-label">Action</label>
+                        <select class="form-select" id="test_action" name="action" required>
+                            <option value="BUY">BUY</option>
+                            <option value="SELL">SELL</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="test_quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="test_quantity" name="quantity" value="1" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="test_strategy" class="form-label">Strategy Name</label>
+                        <input type="text" class="form-control" id="test_strategy" name="strategy" value="Test Strategy" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="testAlertForm" class="btn btn-primary">Send Test Alert</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Performance Chart
+const ctx = document.getElementById('performanceChart').getContext('2d');
+const performanceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ performance_dates|safe }},
+        datasets: [{
+            label: 'Portfolio Value',
+            data: {{ performance_values|safe }},
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: false,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Test Alert Form Handler
+document.getElementById('testAlertForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    fetch('/api/webhook/tradingview', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('testAlertModal')).hide();
+            location.reload(); // Refresh to show new alert
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to send test alert');
+    });
+});
+</script>
+{% endblock %}

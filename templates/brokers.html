@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Broker Accounts</h1>
+        <p class="text-muted mb-0">Connect and manage your trading accounts</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBrokerModal">
+        <i class="fas fa-plus me-1"></i>Connect Broker
+    </button>
+</div>
+
+<!-- Supported Brokers -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Supported Brokers</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded bg-light">
+                            <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                            <h6>Alpaca</h6>
+                            <small class="text-muted">Stocks & Crypto</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded bg-light">
+                            <i class="fas fa-exchange-alt fa-2x text-success mb-2"></i>
+                            <h6>Interactive Brokers</h6>
+                            <small class="text-muted">Stocks, Options, Forex</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded bg-light opacity-50">
+                            <i class="fas fa-coins fa-2x text-warning mb-2"></i>
+                            <h6>Binance <span class="badge bg-secondary">Soon</span></h6>
+                            <small class="text-muted">Cryptocurrency</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded bg-light opacity-50">
+                            <i class="fas fa-dollar-sign fa-2x text-info mb-2"></i>
+                            <h6>MetaTrader <span class="badge bg-secondary">Soon</span></h6>
+                            <small class="text-muted">Forex & CFDs</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Connected Brokers -->
+<div class="card">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h5 class="mb-0">Your Connected Accounts</h5>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-success btn-sm" onclick="testAllConnections()">
+                    <i class="fas fa-sync me-1"></i>Test All Connections
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if brokers %}
+        <div class="row">
+            {% for broker in brokers %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 border-{% if broker.is_connected %}success{% else %}danger{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">{{ broker.name }}</h5>
+                                <span class="badge bg-{% if broker.broker_type == 'alpaca' %}primary{% elif broker.broker_type == 'interactive_brokers' %}success{% else %}secondary{% endif %}">
+                                    {{ broker.broker_type|title|replace('_', ' ') }}
+                                </span>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="editBroker('{{ broker.id }}')">
+                                        <i class="fas fa-edit me-2"></i>Edit
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="testConnection('{{ broker.id }}')">
+                                        <i class="fas fa-plug me-2"></i>Test Connection
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteBroker('{{ broker.id }}')">
+                                        <i class="fas fa-trash me-2"></i>Remove
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Status:</span>
+                                <span class="badge bg-{% if broker.is_connected %}success{% else %}danger{% endif %}">
+                                    {% if broker.is_connected %}Connected{% else %}Disconnected{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Account Type:</span>
+                                <span class="{% if broker.is_paper_trading %}text-warning{% else %}text-success{% endif %}">
+                                    {% if broker.is_paper_trading %}Paper Trading{% else %}Live Trading{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {% if broker.account_balance is not none %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Balance:</span>
+                                <span class="fw-bold">${{ broker.account_balance|round(2) }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if broker.buying_power is not none %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Buying Power:</span>
+                                <span>${{ broker.buying_power|round(2) }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Last Updated:</span>
+                                <span class="text-muted">{{ broker.updated_at.strftime('%m/%d %H:%M') if broker.updated_at else 'Never' }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-auto">
+                            <button class="btn btn-sm {% if broker.is_active %}btn-warning{% else %}btn-success{% endif %} flex-grow-1"
+                                    onclick="toggleBroker('{{ broker.id }}', {{ broker.is_active|lower }})">
+                                {% if broker.is_active %}
+                                <i class="fas fa-pause me-1"></i>Disable
+                                {% else %}
+                                <i class="fas fa-play me-1"></i>Enable
+                                {% endif %}
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="refreshBroker('{{ broker.id }}')" title="Refresh Data">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-link fa-4x text-muted mb-3"></i>
+            <h4>No Brokers Connected</h4>
+            <p class="text-muted mb-3">Connect your first broker account to start automated trading.</p>
+            <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addBrokerModal">
+                <i class="fas fa-plus me-1"></i>Connect First Broker
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Broker Modal -->
+<div class="modal fade" id="addBrokerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Connect Broker Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addBrokerForm">
+                    <div class="mb-3">
+                        <label for="broker_type" class="form-label">Broker Type</label>
+                        <select class="form-select" id="broker_type" name="broker_type" required onchange="showBrokerFields()">
+                            <option value="">Select a broker...</option>
+                            <option value="alpaca">Alpaca Markets</option>
+                            <option value="interactive_brokers">Interactive Brokers</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="broker_name" class="form-label">Account Name</label>
+                        <input type="text" class="form-control" id="broker_name" name="name" 
+                               placeholder="e.g., My Alpaca Account" required>
+                        <div class="form-text">Choose a name to identify this account</div>
+                    </div>
+                    
+                    <!-- Alpaca Fields -->
+                    <div id="alpaca_fields" class="broker-fields" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Alpaca API Keys</h6>
+                            <p class="mb-2">Get your API keys from your Alpaca dashboard:</p>
+                            <ol class="mb-0 small">
+                                <li>Login to <a href="https://alpaca.markets" target="_blank">Alpaca Markets</a></li>
+                                <li>Go to "Paper Trading" or "Live Trading" section</li>
+                                <li>Navigate to "API Keys"</li>
+                                <li>Generate new keys and copy them here</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="alpaca_api_key" class="form-label">API Key</label>
+                                    <input type="password" class="form-control" id="alpaca_api_key" name="api_key">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="alpaca_secret_key" class="form-label">Secret Key</label>
+                                    <input type="password" class="form-control" id="alpaca_secret_key" name="secret_key">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="alpaca_paper" name="paper_trading" checked>
+                            <label class="form-check-label" for="alpaca_paper">
+                                Paper Trading (Recommended for testing)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Interactive Brokers Fields -->
+                    <div id="ib_fields" class="broker-fields" style="display: none;">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Interactive Brokers Requirements</h6>
+                            <p class="mb-2">To connect Interactive Brokers, you need:</p>
+                            <ol class="mb-0 small">
+                                <li>TWS (Trader Workstation) or IB Gateway running</li>
+                                <li>API connections enabled in TWS settings</li>
+                                <li>Correct port and client ID configured</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="ib_host" class="form-label">Host</label>
+                                    <input type="text" class="form-control" id="ib_host" name="host" value="127.0.0.1">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="ib_port" class="form-label">Port</label>
+                                    <input type="number" class="form-control" id="ib_port" name="port" value="7497">
+                                    <div class="form-text">7497 for paper, 7496 for live</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="ib_client_id" class="form-label">Client ID</label>
+                                    <input type="number" class="form-control" id="ib_client_id" name="client_id" value="1">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="ib_account_id" class="form-label">Account ID (Optional)</label>
+                            <input type="text" class="form-control" id="ib_account_id" name="account_id" 
+                                   placeholder="Leave empty for auto-detection">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" onclick="testBrokerConnection()">Test Connection</button>
+                <button type="submit" form="addBrokerForm" class="btn btn-primary">Connect Broker</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show/hide broker-specific fields
+function showBrokerFields() {
+    const brokerType = document.getElementById('broker_type').value;
+    const allFields = document.querySelectorAll('.broker-fields');
+    
+    // Hide all fields first
+    allFields.forEach(field => field.style.display = 'none');
+    
+    // Show relevant fields
+    if (brokerType === 'alpaca') {
+        document.getElementById('alpaca_fields').style.display = 'block';
+    } else if (brokerType === 'interactive_brokers') {
+        document.getElementById('ib_fields').style.display = 'block';
+    }
+}
+
+// Add Broker Form Handler
+document.getElementById('addBrokerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    fetch('/api/brokers', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('addBrokerModal')).hide();
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to connect broker');
+    });
+});
+
+// Test broker connection before adding
+function testBrokerConnection() {
+    const formData = new FormData(document.getElementById('addBrokerForm'));
+    const data = Object.fromEntries(formData);
+    
+    fetch('/api/brokers/test', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Connection successful! You can now connect this broker.');
+        } else {
+            alert('❌ Connection failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to test connection');
+    });
+}
+
+// Test single broker connection
+function testConnection(brokerId) {
+    fetch(`/api/brokers/${brokerId}/test`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Connection successful!');
+        } else {
+            alert('❌ Connection failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to test connection');
+    });
+}
+
+// Test all broker connections
+function testAllConnections() {
+    fetch('/api/brokers/test-all', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        let message = 'Connection Test Results:\n\n';
+        Object.entries(data.results).forEach(([name, success]) => {
+            message += `${success ? '✅' : '❌'} ${name}\n`;
+        });
+        alert(message);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to test connections');
+    });
+}
+
+// Toggle broker active status
+function toggleBroker(brokerId, isActive) {
+    const action = isActive ? 'disable' : 'enable';
+    
+    fetch(`/api/brokers/${brokerId}/${action}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(`Failed to ${action} broker`);
+    });
+}
+
+// Refresh broker data
+function refreshBroker(brokerId) {
+    fetch(`/api/brokers/${brokerId}/refresh`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to refresh broker data');
+    });
+}
+
+// Delete broker
+function deleteBroker(brokerId) {
+    if (!confirm('Are you sure you want to remove this broker account? This will also disable all strategies using this broker.')) {
+        return;
+    }
+    
+    fetch(`/api/brokers/${brokerId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to remove broker');
+    });
+}
+</script>
+{% endblock %}

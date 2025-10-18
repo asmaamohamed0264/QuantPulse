@@ -51,11 +51,11 @@ def get_current_user(
     if payload is None:
         raise credentials_exception
     
-    username: str = payload.get("sub")
-    if username is None:
+    email: str = payload.get("sub")
+    if email is None:
         raise credentials_exception
     
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.email == email).first()
     if user is None:
         raise credentials_exception
     
@@ -66,6 +66,35 @@ def get_current_user(
         )
     
     return user
+
+
+def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
+    """Get current user if authenticated, otherwise return None"""
+    try:
+        # Try to get token from cookie first
+        token = request.cookies.get("access_token")
+        if token and token.startswith("Bearer "):
+            token = token[7:]  # Remove 'Bearer ' prefix
+        
+        # If no cookie token, try Authorization header
+        if not token:
+            authorization = request.headers.get("authorization")
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization[7:]
+        
+        if not token:
+            return None
+            
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+            
+        user = db.query(User).filter(User.email == email).first()
+        return user if user and user.is_active else None
+        
+    except (JWTError, AttributeError):
+        return None
 
 def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """Get current active user"""

@@ -4,9 +4,11 @@ User Model - Authentication and user management
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from werkzeug.security import generate_password_hash, check_password_hash
+from passlib.context import CryptContext
 from app.database import Base
 import uuid
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class User(Base):
@@ -44,11 +46,11 @@ class User(Base):
 
     def set_password(self, password: str):
         """Hash and set password"""
-        self.hashed_password = generate_password_hash(password)
-
+        self.hashed_password = pwd_context.hash(password)
+    
     def check_password(self, password: str) -> bool:
-        """Check if provided password matches hash"""
-        return check_password_hash(self.hashed_password, password)
+        """Check if provided password matches the hashed password"""
+        return pwd_context.verify(password, self.hashed_password)
 
     def get_allowed_ips(self) -> list:
         """Get list of allowed IPs"""

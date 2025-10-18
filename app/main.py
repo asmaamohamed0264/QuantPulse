@@ -10,7 +10,10 @@ from loguru import logger
 
 from app.config import settings
 from app.database import create_tables
+from app.init_data import init_database
 from app.api.v1 import auth, webhooks, strategies, users, subscriptions, broker_accounts
+from app.api.v1 import strategies_enhanced
+from app.api.v1 import brokers_enhanced
 
 
 @asynccontextmanager
@@ -20,6 +23,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting QuantPulse application...")
     create_tables()
     logger.info("Database tables created/verified")
+    init_database()
+    logger.info("Database initialized with default data")
     yield
     # Shutdown
     logger.info("Shutting down QuantPulse application...")
@@ -63,27 +68,21 @@ async def health_check():
         "version": settings.version
     }
 
-# Root endpoint
-@app.get("/", tags=["Root"])
-async def root():
-    """Root endpoint with service information"""
-    return {
-        "service": "QuantPulse",
-        "description": "Professional Automated Trading Service",
-        "version": settings.version,
-        "docs": "/docs",
-        "redoc": "/redoc",
-        "health": "/health",
-        "api": "/api/v1"
-    }
+# Root endpoint is now handled by web routes
+
+# Include web routes for frontend (before API routes to handle root)
+from app.web import router as web_router
+app.include_router(web_router, tags=["web"])
 
 # Include API routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(webhooks.router, prefix="/api/v1", tags=["Webhooks"])
 app.include_router(strategies.router, prefix="/api/v1/strategies", tags=["Strategies"])
+app.include_router(strategies_enhanced.router, prefix="/api/v1/strategies", tags=["Strategies Enhanced"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(subscriptions.router, prefix="/api/v1/subscriptions", tags=["Subscriptions"])
 app.include_router(broker_accounts.router, prefix="/api/v1/broker-accounts", tags=["Broker Accounts"])
+app.include_router(brokers_enhanced.router, prefix="/api/v1/broker-accounts", tags=["Broker Accounts Enhanced"])
 
 # Mount static files (if you have a web interface)
 try:
