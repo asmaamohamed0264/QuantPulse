@@ -1,0 +1,18 @@
+{
+  "action": "buy",
+  "symbol": "BTCUSD",
+  "price": 45000.00,
+  "quantity": 0.001,
+  "strategy": "My Trading Strategy",
+  "exchange": "COINBASE",
+  "asset_class": "crypto",
+  "order_type": "market",
+  "time_in_force": "gtc",
+  "stop_loss": 44000.00,
+  "take_profit": 46000.00,
+  "max_slippage": 0.001,
+  "position_size_usd": 45.00,
+  "test_mode": false,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "comment": "Entry signal from TradingView strategy"
+}
