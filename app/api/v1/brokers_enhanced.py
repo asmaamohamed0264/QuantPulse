@@ -29,10 +29,10 @@ async def test_broker_connection(
         data = await request.json()
         
         # Validate required fields
-        if not data.get("broker_type") or not data.get("api_key") or not data.get("api_secret"):
+        if not data.get("broker_type") or not data.get("api_key") or not data.get("secret_key"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Missing required fields: broker_type, api_key, api_secret"
+                detail="Missing required fields: broker_type, api_key, secret_key"
             )
         
         # Validate broker type
@@ -48,8 +48,8 @@ async def test_broker_connection(
         broker_client = get_broker_client(
             broker_type_enum, 
             data["api_key"], 
-            data["api_secret"], 
-            data.get("is_paper_trading", True)
+            data["secret_key"], 
+            data.get("paper_trading", True)
         )
         
         # Test the connection
