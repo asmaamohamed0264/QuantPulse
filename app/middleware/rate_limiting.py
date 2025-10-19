@@ -39,8 +39,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Rate limiting logic"""
         
-        # Skip rate limiting for health checks and static files
-        if request.url.path in ["/health", "/docs", "/redoc", "/openapi.json"] or \
+        # Skip rate limiting for health checks, static files, and main pages
+        if request.url.path in ["/health", "/docs", "/redoc", "/openapi.json", "/", "/login", "/register", "/pricing"] or \
            request.url.path.startswith("/static"):
             response = await call_next(request)
             return response

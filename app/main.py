@@ -57,7 +57,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.debug else ["https://quantpulse.qub3.uk"],
+    allow_origins=["*"] if settings.debug else getattr(settings, 'cors_origins', "https://quantpulse.qub3.uk,https://www.quantpulse.qub3.uk").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

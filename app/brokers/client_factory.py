@@ -5,7 +5,7 @@ Creates appropriate broker client instances based on broker type.
 """
 from typing import Union
 from app.models.broker_account import BrokerType
-from app.services.alpaca_service import AlpacaClient
+from app.services.alpaca_client import AlpacaClient
 
 
 class MockInteractiveBrokersClient:

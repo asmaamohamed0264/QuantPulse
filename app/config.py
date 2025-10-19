@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     # Rate Limiting
     webhook_rate_limit: int = 100  # requests per hour
     
+    # CORS
+    cors_origins: str = "https://quantpulse.qub3.uk,https://www.quantpulse.qub3.uk"
+    
     # Logging
     log_level: str = "INFO"
     log_file: str = "quantpulse.log"
