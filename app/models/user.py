@@ -46,10 +46,16 @@ class User(Base):
 
     def set_password(self, password: str):
         """Hash and set password"""
+        # bcrypt has a 72-byte limit, so truncate if necessary
+        if len(password.encode('utf-8')) > 72:
+            password = password[:72]
         self.hashed_password = pwd_context.hash(password)
     
     def check_password(self, password: str) -> bool:
         """Check if provided password matches the hashed password"""
+        # bcrypt has a 72-byte limit, so truncate if necessary
+        if len(password.encode('utf-8')) > 72:
+            password = password[:72]
         return pwd_context.verify(password, self.hashed_password)
 
     def get_allowed_ips(self) -> list:

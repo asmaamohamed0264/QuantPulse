@@ -86,6 +86,7 @@
                                        name="password" 
                                        placeholder="Create a strong password"
                                        minlength="8"
+                                       maxlength="72"
                                        required>
                                 <button type="button" 
                                         class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted"
@@ -97,7 +98,7 @@
                                 Password must be at least 8 characters long.
                             </div>
                             <div class="form-text">
-                                <small>Use 8+ characters with a mix of letters, numbers & symbols</small>
+                                <small>Use 8-72 characters with a mix of letters, numbers & symbols</small>
                             </div>
                         </div>
                         
@@ -245,6 +246,20 @@ function togglePassword(inputId) {
     }
 }
 
+// Password validation
+function validatePassword() {
+    const password = document.getElementById('password');
+    const passwordBytes = new TextEncoder().encode(password.value).length;
+    
+    if (passwordBytes > 72) {
+        password.setCustomValidity('Password cannot be longer than 72 characters');
+        return false;
+    } else {
+        password.setCustomValidity('');
+        return true;
+    }
+}
+
 // Password matching validation
 function validatePasswordMatch() {
     const password = document.getElementById('password');
@@ -268,12 +283,16 @@ function validatePasswordMatch() {
         const password = document.getElementById('password');
         const confirmPassword = document.getElementById('confirm_password');
         
-        // Add password match validation
+        // Add password validation
+        password.addEventListener('input', function() {
+            validatePassword();
+            validatePasswordMatch();
+        });
         confirmPassword.addEventListener('input', validatePasswordMatch);
-        password.addEventListener('input', validatePasswordMatch);
         
         Array.from(forms).forEach(function(form) {
             form.addEventListener('submit', function(event) {
+                validatePassword();
                 validatePasswordMatch();
                 
                 if (form.checkValidity() === false) {
