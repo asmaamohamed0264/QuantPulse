@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - QuantPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pricing-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .pricing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .pricing-card.popular {
+        border-color: var(--primary-color);
+        position: relative;
+    }
+    
+    .pricing-card.popular::before {
+        content: "Most Popular";
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 20px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .price-display {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .feature-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .feature-list li i {
+        color: var(--success-color);
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3">Choose Your Plan</h1>
+            <p class="lead text-muted">Select the perfect plan for your trading needs. All plans include a free trial.</p>
+        </div>
+    </div>
+    
+    <div class="row g-4 justify-content-center">
+        {% for plan in plans %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card pricing-card h-100 {% if plan.plan_type.value == 'plus' %}popular{% endif %}">
+                <div class="card-body text-center p-4">
+                    <h3 class="card-title mb-3">{{ plan.name }}</h3>
+                    <div class="price-display mb-3">
+                        ${{ "%.0f"|format(plan.price_monthly) }}
+                        <small class="text-muted">/month</small>
+                    </div>
+                    
+                    <ul class="feature-list text-start mb-4">
+                        <li><i class="fas fa-check"></i> {{ plan.max_alerts_per_day }} alerts per day</li>
+                        <li><i class="fas fa-check"></i> {{ plan.max_strategies }} trading strategies</li>
+                        {% if plan.supports_crypto %}
+                        <li><i class="fas fa-check"></i> Cryptocurrency trading</li>
+                        {% endif %}
+                        {% if plan.supports_stocks %}
+                        <li><i class="fas fa-check"></i> Stock trading</li>
+                        {% endif %}
+                        {% if plan.supports_forex %}
+                        <li><i class="fas fa-check"></i> Forex trading</li>
+                        {% endif %}
+                        {% if plan.supports_mt4_mt5 %}
+                        <li><i class="fas fa-check"></i> MT4/MT5 support</li>
+                        {% endif %}
+                        {% if plan.supports_prop_firms %}
+                        <li><i class="fas fa-check"></i> Prop firm integration</li>
+                        {% endif %}
+                        <li><i class="fas fa-check"></i> {{ plan.trial_days }}-day free trial</li>
+                    </ul>
+                    
+                    {% if user %}
+                        <a href="/subscription" class="btn btn-primary btn-lg w-100">Manage Subscription</a>
+                    {% else %}
+                        <a href="/register?plan={{ plan.plan_type.value }}" class="btn btn-primary btn-lg w-100">Start Free Trial</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <h3 class="mb-3">All Plans Include</h3>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <i class="fas fa-shield-alt fa-2x text-primary mb-2"></i>
+                        <h6>Secure Trading</h6>
+                        <small class="text-muted">Bank-level security</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                        <h6>24/7 Monitoring</h6>
+                        <small class="text-muted">Always watching markets</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                        <h6>Real-time Analytics</h6>
+                        <small class="text-muted">Advanced reporting</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <i class="fas fa-headset fa-2x text-primary mb-2"></i>
+                        <h6>Expert Support</h6>
+                        <small class="text-muted">Dedicated assistance</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

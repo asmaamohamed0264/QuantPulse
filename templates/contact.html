@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - QuantPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .contact-card {
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .contact-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .contact-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-4 fw-bold mb-3">Contact Us</h1>
+            <p class="lead text-muted">Get in touch with our team. We're here to help you succeed in automated trading.</p>
+        </div>
+    </div>
+    
+    <div class="row g-5">
+        <div class="col-lg-8">
+            <div class="card contact-card">
+                <div class="card-body p-4">
+                    <h3 class="mb-4">Send us a Message</h3>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone">
+                            </div>
+                            <div class="col-12">
+                                <label for="subject" class="form-label">Subject</label>
+                                <select class="form-select" id="subject" required>
+                                    <option value="">Choose a subject</option>
+                                    <option value="general">General Inquiry</option>
+                                    <option value="technical">Technical Support</option>
+                                    <option value="billing">Billing Question</option>
+                                    <option value="feature">Feature Request</option>
+                                    <option value="partnership">Partnership</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" rows="5" placeholder="Tell us how we can help you..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card contact-card text-center">
+                        <div class="card-body p-4">
+                            <div class="contact-icon bg-primary text-white">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h5>Email Support</h5>
+                            <p class="text-muted">Get help via email</p>
+                            <a href="mailto:support@quantpulse.com" class="btn btn-outline-primary">support@quantpulse.com</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="card contact-card text-center">
+                        <div class="card-body p-4">
+                            <div class="contact-icon bg-success text-white">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <h5>Live Chat</h5>
+                            <p class="text-muted">Chat with our team</p>
+                            <button class="btn btn-outline-success" onclick="alert('Live chat coming soon!')">Start Chat</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="card contact-card text-center">
+                        <div class="card-body p-4">
+                            <div class="contact-icon bg-info text-white">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h5>Response Time</h5>
+                            <p class="text-muted">We typically respond within</p>
+                            <h6 class="text-info">2-4 hours</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <h3 class="mb-4">Frequently Asked Questions</h3>
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq1">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                                    How does QuantPulse work?
+                                </button>
+                            </h2>
+                            <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    QuantPulse connects to your TradingView alerts and automatically executes trades on your connected broker accounts. Simply set up your strategies in TradingView, and we'll handle the rest.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                                    Which brokers do you support?
+                                </button>
+                            </h2>
+                            <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    We currently support Alpaca for stocks and crypto trading. We're working on adding support for Interactive Brokers, MT4/MT5, and other major brokers.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                                    Is there a free trial?
+                                </button>
+                            </h2>
+                            <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes! All our plans come with a free trial period. Basic plan includes 7 days, Plus plan includes 14 days, and Ultra plan includes 30 days free trial.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -436,6 +436,14 @@ async def alerts_page(request: Request, user: User = Depends(get_current_user_op
     return templates.TemplateResponse("alerts.html", context)
 
 
+@router.get("/contact", response_class=HTMLResponse)
+async def contact_page(request: Request, user: Optional[User] = Depends(get_current_user_optional)):
+    """Contact page"""
+    context = get_user_context(user)
+    context["request"] = request
+    return templates.TemplateResponse("contact.html", context)
+
+
 @router.get("/logout")
 async def logout():
     """Logout and clear session"""

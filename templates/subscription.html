@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Management - QuantPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .subscription-card {
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .subscription-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .current-plan {
+        border: 2px solid var(--primary-color);
+        position: relative;
+    }
+    
+    .current-plan::before {
+        content: "Current Plan";
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .plan-features {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .plan-features li {
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .plan-features li:last-child {
+        border-bottom: none;
+    }
+    
+    .plan-features li i {
+        color: var(--success-color);
+        margin-right: 10px;
+    }
+    
+    .usage-bar {
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .usage-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+        transition: width 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-4 fw-bold mb-3">Subscription Management</h1>
+            <p class="lead text-muted">Manage your QuantPulse subscription and usage.</p>
+        </div>
+    </div>
+    
+    {% if subscription %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card subscription-card current-plan">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="mb-2">{{ subscription.plan.name }}</h3>
+                            <p class="text-muted mb-3">{{ subscription.plan.description or "Professional automated trading service" }}</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Status</small>
+                                            <div class="fw-bold text-capitalize">{{ subscription.status.value }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-clock text-primary me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Trial Days</small>
+                                            <div class="fw-bold">{{ user.trial_days_remaining or 0 }} days left</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="h2 text-primary mb-0">${{ "%.0f"|format(subscription.plan.price_monthly) }}</div>
+                            <small class="text-muted">per month</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="card subscription-card">
+                <div class="card-body p-4">
+                    <h5 class="card-title">Daily Usage</h5>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Alerts Today</span>
+                            <span>{{ subscription.alerts_used_today }}/{{ subscription.plan.max_alerts_per_day }}</span>
+                        </div>
+                        <div class="usage-bar">
+                            <div class="usage-fill" style="width: {{ (subscription.alerts_used_today / subscription.plan.max_alerts_per_day * 100)|round(1) }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Strategies</span>
+                            <span>{{ subscription.strategies_used_today }}/{{ subscription.plan.max_strategies }}</span>
+                        </div>
+                        <div class="usage-bar">
+                            <div class="usage-fill" style="width: {{ (subscription.strategies_used_today / subscription.plan.max_strategies * 100)|round(1) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card subscription-card">
+                <div class="card-body p-4">
+                    <h5 class="card-title">Plan Features</h5>
+                    <ul class="plan-features">
+                        {% if subscription.plan.supports_crypto %}
+                        <li><i class="fas fa-check"></i> Cryptocurrency Trading</li>
+                        {% endif %}
+                        {% if subscription.plan.supports_stocks %}
+                        <li><i class="fas fa-check"></i> Stock Trading</li>
+                        {% endif %}
+                        {% if subscription.plan.supports_forex %}
+                        <li><i class="fas fa-check"></i> Forex Trading</li>
+                        {% endif %}
+                        {% if subscription.plan.supports_mt4_mt5 %}
+                        <li><i class="fas fa-check"></i> MT4/MT5 Support</li>
+                        {% endif %}
+                        {% if subscription.plan.supports_prop_firms %}
+                        <li><i class="fas fa-check"></i> Prop Firm Integration</li>
+                        {% endif %}
+                        <li><i class="fas fa-check"></i> {{ subscription.plan.max_alerts_per_day }} Alerts/Day</li>
+                        <li><i class="fas fa-check"></i> {{ subscription.plan.max_strategies }} Strategies</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4">Available Plans</h3>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        {% for plan in plans %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card subscription-card h-100 {% if subscription and subscription.plan.id == plan.id %}current-plan{% endif %}">
+                <div class="card-body text-center p-4">
+                    <h4 class="card-title mb-3">{{ plan.name }}</h4>
+                    <div class="h2 text-primary mb-3">
+                        ${{ "%.0f"|format(plan.price_monthly) }}
+                        <small class="text-muted">/month</small>
+                    </div>
+                    
+                    <ul class="plan-features text-start mb-4">
+                        <li><i class="fas fa-check"></i> {{ plan.max_alerts_per_day }} alerts per day</li>
+                        <li><i class="fas fa-check"></i> {{ plan.max_strategies }} trading strategies</li>
+                        {% if plan.supports_crypto %}
+                        <li><i class="fas fa-check"></i> Cryptocurrency trading</li>
+                        {% endif %}
+                        {% if plan.supports_stocks %}
+                        <li><i class="fas fa-check"></i> Stock trading</li>
+                        {% endif %}
+                        {% if plan.supports_forex %}
+                        <li><i class="fas fa-check"></i> Forex trading</li>
+                        {% endif %}
+                        {% if plan.supports_mt4_mt5 %}
+                        <li><i class="fas fa-check"></i> MT4/MT5 support</li>
+                        {% endif %}
+                        {% if plan.supports_prop_firms %}
+                        <li><i class="fas fa-check"></i> Prop firm integration</li>
+                        {% endif %}
+                        <li><i class="fas fa-check"></i> {{ plan.trial_days }}-day free trial</li>
+                    </ul>
+                    
+                    {% if subscription and subscription.plan.id == plan.id %}
+                        <button class="btn btn-success btn-lg w-100" disabled>Current Plan</button>
+                    {% else %}
+                        <button class="btn btn-primary btn-lg w-100" onclick="alert('Plan upgrade coming soon!')">Upgrade Plan</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <h5 class="card-title">Billing Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Next Billing Date:</strong> {{ subscription.current_period_end.strftime('%B %d, %Y') if subscription.current_period_end else 'N/A' }}</p>
+                            <p><strong>Payment Method:</strong> {{ subscription.stripe_customer_id or 'Not configured' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Subscription ID:</strong> {{ subscription.stripe_subscription_id or 'N/A' }}</p>
+                            <p><strong>Customer ID:</strong> {{ subscription.stripe_customer_id or 'N/A' }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary me-2" onclick="alert('Payment method update coming soon!')">Update Payment Method</button>
+                        <button class="btn btn-outline-danger" onclick="alert('Cancellation coming soon!')">Cancel Subscription</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
