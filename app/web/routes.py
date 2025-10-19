@@ -334,7 +334,23 @@ async def dashboard(request: Request, user: User = Depends(get_current_user_opti
         })
         
         logger.info("Rendering dashboard template")
-        return templates.TemplateResponse("dashboard.html", context)
+        # Simplified context for debugging
+        simple_context = {
+            "request": request,
+            "user": user,
+            "stats": {
+                "total_alerts": 0,
+                "successful_trades": 0,
+                "active_strategies": 0,
+                "alerts_today": 0
+            },
+            "recent_alerts": [],
+            "account": {"portfolio_value": 0},
+            "brokers": [],
+            "performance_dates": "[]",
+            "performance_values": "[]"
+        }
+        return templates.TemplateResponse("dashboard.html", simple_context)
         
     except Exception as e:
         logger.error(f"Dashboard error: {str(e)}")
