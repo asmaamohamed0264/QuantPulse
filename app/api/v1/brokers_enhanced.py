@@ -12,8 +12,68 @@ from app.models.user import User
 from app.models.broker_account import BrokerAccount, BrokerType
 from app.auth import get_current_user
 from app.brokers import get_broker_client
+from loguru import logger
 
 router = APIRouter()
+
+
+@router.post("/test", response_model=dict)
+async def test_broker_connection(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Test broker connection before creating account"""
+    try:
+        # Get data from request body
+        data = await request.json()
+        
+        # Validate required fields
+        if not data.get("broker_type") or not data.get("api_key") or not data.get("api_secret"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing required fields: broker_type, api_key, api_secret"
+            )
+        
+        # Validate broker type
+        try:
+            broker_type_enum = BrokerType(data["broker_type"].lower())
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid broker type. Supported: alpaca, interactive_brokers"
+            )
+        
+        # Test connection with broker
+        broker_client = get_broker_client(
+            broker_type_enum, 
+            data["api_key"], 
+            data["api_secret"], 
+            data.get("is_paper_trading", True)
+        )
+        
+        # Test the connection
+        account_info = broker_client.get_account()
+        
+        return {
+            "success": True,
+            "message": "Connection successful",
+            "account_info": {
+                "account_number": account_info.get("account_number"),
+                "cash": account_info.get("cash", 0),
+                "buying_power": account_info.get("buying_power", 0),
+                "portfolio_value": account_info.get("portfolio_value", 0)
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Broker connection test failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Connection failed: {str(e)}"
+        )
 
 
 @router.post("/", response_model=dict)
