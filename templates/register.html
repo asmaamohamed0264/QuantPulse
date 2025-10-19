@@ -13,10 +13,14 @@
             
             <div class="card border-0 shadow-lg">
                 <div class="card-body p-5">
-                    {% if error %}
+                    {% if errors %}
                     <div class="alert alert-danger d-flex align-items-center" role="alert">
                         <i class="fas fa-exclamation-triangle me-3"></i>
-                        <div>{{ error }}</div>
+                        <div>
+                            {% for error in errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
                     </div>
                     {% endif %}
                     

@@ -78,7 +78,11 @@ async def login_submit(
     db: Session = Depends(get_db)
 ):
     """Handle login form submission"""
+    from loguru import logger
+    logger.info(f"Login attempt for email: {email}")
+    
     user = db.query(User).filter(User.email == email).first()
+    logger.info(f"User found: {user is not None}")
     
     if not user or not user.check_password(password):
         error_context = {
@@ -141,6 +145,8 @@ async def register_submit(
     db: Session = Depends(get_db)
 ):
     """Handle registration form submission"""
+    from loguru import logger
+    logger.info(f"Registration attempt for email: {email}")
     errors = []
     
     # Validation
@@ -168,7 +174,17 @@ async def register_submit(
     
     try:
         # Create user
-        username = email.split('@')[0]  # Use email prefix as username
+        base_username = email.split('@')[0]  # Use email prefix as base username
+        username = base_username
+        
+        # Check if username already exists and make it unique
+        counter = 1
+        while db.query(User).filter(User.username == username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+            
+        logger.info(f"Creating user with username: {username}")
+        
         new_user = User(
             email=email,
             username=username,
@@ -181,6 +197,7 @@ async def register_submit(
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+        logger.info(f"User created successfully with ID: {new_user.id}")
         
         # Create subscription with trial
         plan_mapping = {
@@ -224,10 +241,15 @@ async def register_submit(
         return response
         
     except Exception as e:
+        # Log the error for debugging
+        from loguru import logger
+        logger.error(f"Registration failed: {str(e)}")
+        logger.error(f"Registration error details: {type(e).__name__}")
+        
         error_context = {
             "request": request,
             "user": None,
-            "errors": ["Registration failed. Please try again."]
+            "errors": [f"Registration failed: {str(e)}"]
         }
         return templates.TemplateResponse("register.html", error_context, status_code=500)
 
