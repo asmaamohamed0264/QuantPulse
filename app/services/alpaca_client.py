@@ -53,6 +53,24 @@ class AlpacaClient:
             logger.error(f"Alpaca connection failed: {e}")
             return False
 
+    def get_account(self) -> Dict[str, Any]:
+        """Get account information (synchronous version for compatibility)"""
+        try:
+            account = self.client.get_account()
+            return {
+                "account_number": str(account.id),
+                "cash": float(account.cash),
+                "buying_power": float(account.buying_power),
+                "portfolio_value": float(account.equity),
+                "day_trade_count": account.daytrade_count,
+                "status": account.status,
+                "pattern_day_trader": account.pattern_day_trader,
+                "is_paper": self.broker_account.is_paper_trading
+            }
+        except Exception as e:
+            logger.error(f"Failed to get Alpaca account info: {e}")
+            raise
+
     async def get_account_info(self) -> Dict[str, Any]:
         """Get account information"""
         try:
@@ -71,7 +89,27 @@ class AlpacaClient:
             logger.error(f"Failed to get Alpaca account info: {e}")
             raise
 
-    async def get_positions(self) -> list:
+    def get_positions(self) -> list:
+        """Get all open positions (synchronous version for compatibility)"""
+        try:
+            positions = self.client.get_all_positions()
+            return [
+                {
+                    "symbol": pos.symbol,
+                    "quantity": float(pos.qty),
+                    "side": "long" if float(pos.qty) > 0 else "short",
+                    "market_value": float(pos.market_value),
+                    "avg_entry_price": float(pos.avg_entry_price),
+                    "unrealized_pnl": float(pos.unrealized_pnl),
+                    "unrealized_pnl_percent": float(pos.unrealized_plpc) * 100
+                }
+                for pos in positions
+            ]
+        except Exception as e:
+            logger.error(f"Failed to get Alpaca positions: {e}")
+            raise
+
+    async def get_positions_async(self) -> list:
         """Get all open positions"""
         try:
             positions = self.client.get_all_positions()

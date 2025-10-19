@@ -57,11 +57,21 @@ def get_broker_client(broker_type: BrokerType, api_key: str, api_secret: str, is
         ValueError: If broker type is not supported
     """
     if broker_type == BrokerType.ALPACA:
-        return AlpacaClient(
+        # Create a simple mock object for AlpacaClient
+        class MockBrokerAccount:
+            def __init__(self, broker_type, api_key, api_secret, is_paper_trading):
+                self.broker_type = broker_type
+                self.api_key = api_key
+                self.api_secret = api_secret
+                self.is_paper_trading = is_paper_trading
+        
+        mock_broker_account = MockBrokerAccount(
+            broker_type=BrokerType.ALPACA,
             api_key=api_key,
-            secret_key=api_secret,
-            paper_trading=is_paper
+            api_secret=api_secret,
+            is_paper_trading=is_paper
         )
+        return AlpacaClient(mock_broker_account)
     elif broker_type == BrokerType.INTERACTIVE_BROKERS:
         # For now, return mock client - implement real IB client later
         return MockInteractiveBrokersClient(api_key, api_secret, is_paper)
