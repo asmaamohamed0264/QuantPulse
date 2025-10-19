@@ -312,7 +312,7 @@ document.getElementById('addBrokerForm').addEventListener('submit', function(e) 
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
     
-    fetch('/api/brokers', {
+    fetch('/api/v1/brokers', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -339,7 +339,7 @@ function testBrokerConnection() {
     const formData = new FormData(document.getElementById('addBrokerForm'));
     const data = Object.fromEntries(formData);
     
-    fetch('/api/brokers/test', {
+    fetch('/api/v1/brokers/test', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -362,7 +362,7 @@ function testBrokerConnection() {
 
 // Test single broker connection
 function testConnection(brokerId) {
-    fetch(`/api/brokers/${brokerId}/test`, {
+    fetch(`/api/v1/brokers/${brokerId}/test-connection`, {
         method: 'POST'
     })
     .then(response => response.json())
@@ -381,47 +381,17 @@ function testConnection(brokerId) {
 
 // Test all broker connections
 function testAllConnections() {
-    fetch('/api/brokers/test-all', {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(data => {
-        let message = 'Connection Test Results:\n\n';
-        Object.entries(data.results).forEach(([name, success]) => {
-            message += `${success ? '✅' : '❌'} ${name}\n`;
-        });
-        alert(message);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to test connections');
-    });
+    alert('Test all connections feature is not yet implemented');
 }
 
 // Toggle broker active status
 function toggleBroker(brokerId, isActive) {
-    const action = isActive ? 'disable' : 'enable';
-    
-    fetch(`/api/brokers/${brokerId}/${action}`, {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert(`Failed to ${action} broker`);
-    });
+    alert('Toggle broker status feature is not yet implemented');
 }
 
 // Refresh broker data
 function refreshBroker(brokerId) {
-    fetch(`/api/brokers/${brokerId}/refresh`, {
+    fetch(`/api/v1/brokers/${brokerId}/sync`, {
         method: 'POST'
     })
     .then(response => response.json())
@@ -444,7 +414,7 @@ function deleteBroker(brokerId) {
         return;
     }
     
-    fetch(`/api/brokers/${brokerId}`, {
+    fetch(`/api/v1/brokers/${brokerId}`, {
         method: 'DELETE'
     })
     .then(response => response.json())
