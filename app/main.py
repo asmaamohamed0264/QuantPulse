@@ -14,6 +14,9 @@ from app.init_data import init_database
 from app.api.v1 import auth, webhooks, strategies, users, subscriptions, broker_accounts
 from app.api.v1 import strategies_enhanced
 from app.api.v1 import brokers_enhanced
+from app.middleware import RateLimitMiddleware, WebhookRateLimitMiddleware, CSRFTokenInjector
+from app.utils import migrate_credentials_to_encrypted
+from app.database import get_db
 
 
 @asynccontextmanager
@@ -25,6 +28,17 @@ async def lifespan(app: FastAPI):
     logger.info("Database tables created/verified")
     init_database()
     logger.info("Database initialized with default data")
+    
+    # Migrate existing credentials to encrypted format
+    if hasattr(settings, 'encryption_key') and settings.encryption_key:
+        try:
+            db = next(get_db())
+            result = migrate_credentials_to_encrypted(db, settings.encryption_key)
+            logger.info(f"Credential migration: {result}")
+            db.close()
+        except Exception as e:
+            logger.warning(f"Credential migration failed: {e}")
+    
     yield
     # Shutdown
     logger.info("Shutting down QuantPulse application...")
@@ -48,6 +62,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Security middleware (order matters - apply from outermost to innermost)
+if not settings.debug:  # Only in production
+    # Rate limiting for general API requests
+    app.add_middleware(
+        RateLimitMiddleware,
+        calls=getattr(settings, 'rate_limit_per_minute', 100),
+        period=60
+    )
+    
+    # Specialized rate limiting for webhooks
+    app.add_middleware(
+        WebhookRateLimitMiddleware,
+        webhook_calls=getattr(settings, 'webhook_rate_limit', 50),
+        period=60
+    )
+    
+    # CSRF token injection for HTML responses
+    app.add_middleware(
+        CSRFTokenInjector,
+        secret_key=settings.secret_key
+    )
 
 # Global exception handler
 @app.exception_handler(Exception)
