@@ -32,6 +32,7 @@ services:
       - DATABASE_URL=postgresql://quantpulse:securepass123@db:5432/quantpulse
       
       # Security & JWT
+      - SECRET_KEY=${SECRET_KEY:-QuantPulse2024!SuperSecretJWTKey!RandomString123456789AbCdEf}
       - JWT_SECRET_KEY=QuantPulse2024!SuperSecretJWTKey!RandomString123456789AbCdEf
       - ENCRYPTION_KEY=QuantPulse2024!EncryptionKey!123456789012345678901234
       
@@ -43,17 +44,26 @@ services:
       - ALPACA_SECRET_KEY=${ALPACA_SECRET_KEY:-REPLACE_WITH_YOUR_ALPACA_PAPER_SECRET}
       - ALPACA_BASE_URL=https://paper-api.alpaca.markets
       
+      # Stripe Payment Configuration
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-pk_test_default}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_default}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-whsec_default}
+      
       # Application Configuration
       - ENVIRONMENT=production
       - DEBUG=false
       - DOMAIN_NAME=quantpulse.qub3.uk
       - CORS_ORIGINS=https://quantpulse.qub3.uk,https://www.quantpulse.qub3.uk
+      - FRONTEND_URL=https://quantpulse.qub3.uk
+      - API_BASE_URL=https://quantpulse.qub3.uk/api
       - LOG_LEVEL=INFO
       - WORKERS=2
       
-      # Optional Security
+      # Security Settings
       - RATE_LIMIT_PER_MINUTE=60
       - MAX_CONNECTIONS=100
+      - SESSION_COOKIE_SECURE=true
+      - SESSION_COOKIE_HTTPONLY=true
     ports:
       - "8000:8000"
     depends_on:
