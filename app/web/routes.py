@@ -81,6 +81,11 @@ async def login_submit(
     from loguru import logger
     logger.info(f"Login attempt for email: {email}")
     
+    # Truncate password to 72 bytes to avoid bcrypt limitation
+    if len(password.encode('utf-8')) > 72:
+        password = password[:72]
+        logger.info("Password truncated to 72 characters for login")
+    
     user = db.query(User).filter(User.email == email).first()
     logger.info(f"User found: {user is not None}")
     
@@ -203,6 +208,11 @@ async def register_submit(
             counter += 1
             
         logger.info(f"Creating user with username: {username}")
+        
+        # Truncate password to 72 bytes to avoid bcrypt limitation
+        if len(password.encode('utf-8')) > 72:
+            password = password[:72]
+            logger.info("Password truncated to 72 characters due to bcrypt limitation")
         
         new_user = User(
             email=email,
