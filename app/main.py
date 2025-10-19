@@ -118,7 +118,7 @@ app.include_router(strategies_enhanced.router, prefix="/api/v1/strategies", tags
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(subscriptions.router, prefix="/api/v1/subscriptions", tags=["Subscriptions"])
 app.include_router(broker_accounts.router, prefix="/api/v1/broker-accounts", tags=["Broker Accounts"])
-app.include_router(brokers_enhanced.router, prefix="/api/v1/broker-accounts", tags=["Broker Accounts Enhanced"])
+app.include_router(brokers_enhanced.router, prefix="/api/v1/brokers", tags=["Broker Accounts Enhanced"])
 
 # Mount static files (if you have a web interface)
 try:
