@@ -286,12 +286,19 @@ async def register_submit(
 @router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, user: User = Depends(get_current_user_optional), db: Session = Depends(get_db)):
     """Main dashboard"""
+    from loguru import logger
+    logger.info(f"Dashboard access attempt for user: {user.email if user else 'None'}")
+    
     if not user:
+        logger.info("No user found, redirecting to login")
         return RedirectResponse(url="/login", status_code=302)
     
-    # Get user stats
-    strategies = db.query(Strategy).filter(Strategy.user_id == user.id).all()
-    brokers = db.query(BrokerAccount).filter(BrokerAccount.user_id == user.id).all()
+    try:
+        # Get user stats
+        logger.info("Fetching user strategies and brokers")
+        strategies = db.query(Strategy).filter(Strategy.user_id == user.id).all()
+        brokers = db.query(BrokerAccount).filter(BrokerAccount.user_id == user.id).all()
+        logger.info(f"Found {len(strategies)} strategies and {len(brokers)} brokers")
     
     stats = {
         "total_alerts": sum(s.trades_today for s in strategies),
@@ -312,18 +319,29 @@ async def dashboard(request: Request, user: User = Depends(get_current_user_opti
     performance_dates = json.dumps([f"Day {i}" for i in range(1, 8)])
     performance_values = json.dumps([10000 + i * 100 for i in range(7)])
     
-    context = get_user_context(user)
-    context.update({
-        "request": request,
-        "stats": stats,
-        "recent_alerts": recent_alerts,
-        "account": account,
-        "brokers": [{"name": b.name, "is_connected": b.is_connected, "account_type": "Paper" if b.is_paper_trading else "Live"} for b in brokers],
-        "performance_dates": performance_dates,
-        "performance_values": performance_values
-    })
-    
-    return templates.TemplateResponse("dashboard.html", context)
+        context = get_user_context(user)
+        context.update({
+            "request": request,
+            "stats": stats,
+            "recent_alerts": recent_alerts,
+            "account": account,
+            "brokers": [{"name": b.name, "is_connected": b.is_connected, "account_type": "Paper" if b.is_paper_trading else "Live"} for b in brokers],
+            "performance_dates": performance_dates,
+            "performance_values": performance_values
+        })
+        
+        logger.info("Rendering dashboard template")
+        return templates.TemplateResponse("dashboard.html", context)
+        
+    except Exception as e:
+        logger.error(f"Dashboard error: {str(e)}")
+        logger.error(f"Dashboard error type: {type(e).__name__}")
+        # Return a simple error page instead of crashing
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request,
+            "user": user,
+            "error": f"Dashboard temporarily unavailable: {str(e)}"
+        })
 
 
 @router.get("/strategies", response_class=HTMLResponse)
