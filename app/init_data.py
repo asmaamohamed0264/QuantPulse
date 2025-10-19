@@ -22,65 +22,44 @@ def init_subscription_plans(db: Session):
         SubscriptionPlan(
             name="Basic Plan",
             plan_type=PlanType.BASIC,
-            price=29.00,
-            billing_cycle="monthly",
+            price_monthly=29.00,
             max_alerts_per_day=50,
             max_strategies=3,
-            max_broker_accounts=1,
-            features=[
-                "Up to 50 alerts per day",
-                "3 trading strategies",
-                "1 broker account",
-                "Basic support",
-                "Standard execution speed"
-            ],
+            supports_crypto=True,
+            supports_stocks=False,
+            supports_forex=False,
+            supports_mt4_mt5=False,
+            supports_prop_firms=False,
             trial_days=7,
             is_active=True
         ),
         SubscriptionPlan(
             name="Plus Plan",
             plan_type=PlanType.PLUS,
-            price=79.00,
-            billing_cycle="monthly",
+            price_monthly=79.00,
             max_alerts_per_day=200,
             max_strategies=10,
-            max_broker_accounts=3,
-            features=[
-                "Up to 200 alerts per day",
-                "10 trading strategies",
-                "3 broker accounts",
-                "Priority support",
-                "Fast execution speed",
-                "Advanced analytics",
-                "Risk management tools"
-            ],
+            supports_crypto=True,
+            supports_stocks=True,
+            supports_forex=True,
+            supports_mt4_mt5=False,
+            supports_prop_firms=False,
             trial_days=14,
-            is_active=True,
-            is_popular=True
+            is_active=True
         ),
         SubscriptionPlan(
             name="Ultra Plan",
             plan_type=PlanType.ULTRA,
-            price=199.00,
-            billing_cycle="monthly",
+            price_monthly=199.00,
             max_alerts_per_day=1000,
             max_strategies=50,
-            max_broker_accounts=10,
-            features=[
-                "Up to 1000 alerts per day",
-                "Unlimited strategies",
-                "10 broker accounts",
-                "24/7 premium support",
-                "Ultra-fast execution",
-                "Advanced analytics & reporting",
-                "Custom risk management",
-                "Portfolio optimization",
-                "API access",
-                "White-label options"
-            ],
+            supports_crypto=True,
+            supports_stocks=True,
+            supports_forex=True,
+            supports_mt4_mt5=True,
+            supports_prop_firms=True,
             trial_days=30,
-            is_active=True,
-            is_enterprise=True
+            is_active=True
         )
     ]
     
