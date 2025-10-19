@@ -10,7 +10,7 @@ from datetime import datetime
 from app.database import get_db
 from app.models.user import User
 from app.models.broker_account import BrokerAccount, BrokerType
-from app.auth import get_current_user
+from app.auth import get_current_user_optional
 from app.brokers import get_broker_client
 from loguru import logger
 
@@ -20,11 +20,18 @@ router = APIRouter()
 @router.post("/test", response_model=dict)
 async def test_broker_connection(
     request: Request,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """Test broker connection before creating account"""
     try:
+        # Check if user is authenticated
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required"
+            )
+        
         # Get data from request body
         data = await request.json()
         
@@ -84,7 +91,7 @@ async def create_broker_account(
     api_key: str = Form(...),
     api_secret: str = Form(...),
     is_paper_trading: bool = Form(True),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """Create new broker account connection"""
@@ -158,7 +165,7 @@ async def update_broker_account(
     api_key: str = Form(None),
     api_secret: str = Form(None),
     is_active: bool = Form(None),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """Update broker account settings"""
@@ -237,7 +244,7 @@ async def update_broker_account(
 @router.delete("/{broker_id}", response_model=dict)
 async def delete_broker_account(
     broker_id: int,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """Delete broker account"""
@@ -283,7 +290,7 @@ async def delete_broker_account(
 @router.post("/{broker_id}/test-connection", response_model=dict)
 async def test_broker_connection(
     broker_id: int,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """Test broker account connection"""
@@ -344,7 +351,7 @@ async def test_broker_connection(
 @router.post("/{broker_id}/sync", response_model=dict)
 async def sync_broker_account(
     broker_id: int,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """Sync broker account data"""
@@ -407,7 +414,7 @@ async def sync_broker_account(
 @router.get("/{broker_id}/positions", response_model=dict)
 async def get_broker_positions(
     broker_id: int,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """Get current positions for broker account"""
