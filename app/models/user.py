@@ -7,8 +7,16 @@ from sqlalchemy.sql import func
 from passlib.context import CryptContext
 from app.database import Base
 import uuid
+import bcrypt
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Configure passlib with bcrypt and handle long passwords
+pwd_context = CryptContext(
+    schemes=["bcrypt"], 
+    deprecated="auto",
+    bcrypt__default_rounds=12,
+    bcrypt__min_rounds=10,
+    bcrypt__max_rounds=15
+)
 
 
 class User(Base):
@@ -46,17 +54,36 @@ class User(Base):
 
     def set_password(self, password: str):
         """Hash and set password"""
-        # bcrypt has a 72-byte limit, so truncate if necessary
-        if len(password.encode('utf-8')) > 72:
-            password = password[:72]
-        self.hashed_password = pwd_context.hash(password)
+        try:
+            # bcrypt has a 72-byte limit, so truncate if necessary
+            password_bytes = password.encode('utf-8')
+            if len(password_bytes) > 72:
+                # Truncate to 72 bytes, not characters
+                password_bytes = password_bytes[:72]
+                password = password_bytes.decode('utf-8', errors='ignore')
+            
+            self.hashed_password = pwd_context.hash(password)
+        except Exception as e:
+            # Fallback: use bcrypt directly with proper truncation
+            password_bytes = password.encode('utf-8')[:72]
+            salt = bcrypt.gensalt()
+            self.hashed_password = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
     
     def check_password(self, password: str) -> bool:
         """Check if provided password matches the hashed password"""
-        # bcrypt has a 72-byte limit, so truncate if necessary
-        if len(password.encode('utf-8')) > 72:
-            password = password[:72]
-        return pwd_context.verify(password, self.hashed_password)
+        try:
+            # bcrypt has a 72-byte limit, so truncate if necessary
+            password_bytes = password.encode('utf-8')
+            if len(password_bytes) > 72:
+                # Truncate to 72 bytes, not characters
+                password_bytes = password_bytes[:72]
+                password = password_bytes.decode('utf-8', errors='ignore')
+            
+            return pwd_context.verify(password, self.hashed_password)
+        except Exception as e:
+            # Fallback: use bcrypt directly with proper truncation
+            password_bytes = password.encode('utf-8')[:72]
+            return bcrypt.checkpw(password_bytes, self.hashed_password.encode('utf-8'))
 
     def get_allowed_ips(self) -> list:
         """Get list of allowed IPs"""
