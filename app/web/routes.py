@@ -43,7 +43,7 @@ def get_user_context(user: Optional[User]) -> dict:
     
     # Add subscription info
     if user.subscription:
-        context["user"]["subscription_plan"] = user.subscription.plan.plan_type.value
+        context["user"]["subscription_plan"] = user.subscription.plan.plan_type
         if user.subscription.trial_end:
             days_remaining = (user.subscription.trial_end.replace(tzinfo=None) - datetime.utcnow()).days
             context["user"]["trial_days_remaining"] = max(0, days_remaining)
@@ -303,7 +303,7 @@ async def dashboard(request: Request, user: User = Depends(get_current_user_opti
         stats = {
             "total_alerts": sum(s.trades_today for s in strategies),
             "successful_trades": sum(s.winning_trades for s in strategies),
-            "active_strategies": len([s for s in strategies if s.status.value == "active"]),
+            "active_strategies": len([s for s in strategies if s.status == "active"]),
             "alerts_today": sum(s.trades_today for s in strategies)
         }
         
@@ -355,8 +355,8 @@ async def strategies_page(request: Request, user: User = Depends(get_current_use
     
     stats = {
         "total_strategies": len(strategies),
-        "active_strategies": len([s for s in strategies if s.status.value == "active"]),
-        "paused_strategies": len([s for s in strategies if s.status.value == "paused"]),
+        "active_strategies": len([s for s in strategies if s.status == "active"]),
+        "paused_strategies": len([s for s in strategies if s.status == "paused"]),
         "total_executions": sum(s.total_trades for s in strategies)
     }
     
@@ -369,7 +369,7 @@ async def strategies_page(request: Request, user: User = Depends(get_current_use
             "description": strategy.description,
             "symbols": strategy.get_symbols(),
             "broker_account": {"name": strategy.broker_account.name},
-            "is_active": strategy.status.value == "active",
+            "is_active": strategy.status == "active",
             "alerts_today": strategy.trades_today,
             "success_rate": round(strategy.get_win_rate()),
             "last_alert_at": strategy.last_trade_at
@@ -400,7 +400,7 @@ async def brokers_page(request: Request, user: User = Depends(get_current_user_o
         formatted_brokers.append({
             "id": broker.id,
             "name": broker.name,
-            "broker_type": broker.broker_type.value,
+            "broker_type": broker.broker_type,
             "is_connected": broker.is_connected,
             "is_paper_trading": broker.is_paper_trading,
             "is_active": broker.is_active,
@@ -487,10 +487,10 @@ async def alerts_page(request: Request, user: User = Depends(get_current_user_op
             "id": execution.id,
             "strategy_name": execution.strategy.name,
             "symbol": execution.symbol,
-            "action": execution.action.value,
+            "action": execution.action,
             "quantity": execution.quantity,
             "price": execution.price,
-            "status": execution.status.value,
+            "status": execution.status,
             "created_at": execution.created_at,
             "pnl": execution.pnl,
             "broker_name": execution.strategy.broker_account.name
