@@ -16,7 +16,7 @@ from app.models.user import User
 from app.models.strategy import Strategy
 from app.models.broker_account import BrokerAccount
 from app.models.subscription import Subscription, SubscriptionPlan, PlanType
-from app.auth import get_current_user_optional, create_access_token, verify_password
+from app.auth import get_current_user_optional, create_access_token
 from app.config import settings
 
 router = APIRouter()
