@@ -123,6 +123,25 @@ async def login_submit(
     return response
 
 
+@router.get("/test-db")
+async def test_database(db: Session = Depends(get_db)):
+    """Test database connection and user count"""
+    try:
+        user_count = db.query(User).count()
+        plan_count = db.query(SubscriptionPlan).count()
+        return {
+            "status": "success",
+            "user_count": user_count,
+            "plan_count": plan_count,
+            "message": "Database connection working"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Database error: {str(e)}"
+        }
+
+
 @router.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, user: Optional[User] = Depends(get_current_user_optional)):
     """Registration page"""
