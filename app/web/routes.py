@@ -299,26 +299,26 @@ async def dashboard(request: Request, user: User = Depends(get_current_user_opti
         strategies = db.query(Strategy).filter(Strategy.user_id == user.id).all()
         brokers = db.query(BrokerAccount).filter(BrokerAccount.user_id == user.id).all()
         logger.info(f"Found {len(strategies)} strategies and {len(brokers)} brokers")
-    
-    stats = {
-        "total_alerts": sum(s.trades_today for s in strategies),
-        "successful_trades": sum(s.winning_trades for s in strategies),
-        "active_strategies": len([s for s in strategies if s.status.value == "active"]),
-        "alerts_today": sum(s.trades_today for s in strategies)
-    }
-    
-    # Recent alerts (mock data for now)
-    recent_alerts = []
-    
-    # Account info
-    account = {
-        "portfolio_value": sum(b.total_equity for b in brokers) if brokers else 0
-    }
-    
-    # Performance data (mock)
-    performance_dates = json.dumps([f"Day {i}" for i in range(1, 8)])
-    performance_values = json.dumps([10000 + i * 100 for i in range(7)])
-    
+        
+        stats = {
+            "total_alerts": sum(s.trades_today for s in strategies),
+            "successful_trades": sum(s.winning_trades for s in strategies),
+            "active_strategies": len([s for s in strategies if s.status.value == "active"]),
+            "alerts_today": sum(s.trades_today for s in strategies)
+        }
+        
+        # Recent alerts (mock data for now)
+        recent_alerts = []
+        
+        # Account info
+        account = {
+            "portfolio_value": sum(b.total_equity for b in brokers) if brokers else 0
+        }
+        
+        # Performance data (mock)
+        performance_dates = json.dumps([f"Day {i}" for i in range(1, 8)])
+        performance_values = json.dumps([10000 + i * 100 for i in range(7)])
+        
         context = get_user_context(user)
         context.update({
             "request": request,
