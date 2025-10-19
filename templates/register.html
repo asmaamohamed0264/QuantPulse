@@ -126,7 +126,7 @@
                             </label>
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <input type="radio" class="btn-check" name="plan" id="plan_basic" value="basic" {% if request.args.get('plan') == 'basic' %}checked{% endif %}>
+                                    <input type="radio" class="btn-check" name="plan" id="plan_basic" value="basic" {% if request.query_params.get('plan') == 'basic' %}checked{% endif %}>
                                     <label class="btn btn-outline-primary w-100 h-100 p-3 text-center" for="plan_basic">
                                         <div class="fw-bold">Basic</div>
                                         <div class="fs-5 fw-bold text-primary">$19</div>
@@ -134,7 +134,7 @@
                                     </label>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="radio" class="btn-check" name="plan" id="plan_plus" value="plus" {% if request.args.get('plan') == 'plus' or not request.args.get('plan') %}checked{% endif %}>
+                                    <input type="radio" class="btn-check" name="plan" id="plan_plus" value="plus" {% if request.query_params.get('plan') == 'plus' or not request.query_params.get('plan') %}checked{% endif %}>
                                     <label class="btn btn-outline-warning w-100 h-100 p-3 text-center position-relative" for="plan_plus">
                                         <span class="badge bg-warning text-dark position-absolute top-0 start-50 translate-middle-x" style="top: -8px !important;">Popular</span>
                                         <div class="fw-bold mt-2">Plus</div>
@@ -143,7 +143,7 @@
                                     </label>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="radio" class="btn-check" name="plan" id="plan_ultra" value="ultra" {% if request.args.get('plan') == 'ultra' %}checked{% endif %}>
+                                    <input type="radio" class="btn-check" name="plan" id="plan_ultra" value="ultra" {% if request.query_params.get('plan') == 'ultra' %}checked{% endif %}>
                                     <label class="btn btn-outline-success w-100 h-100 p-3 text-center" for="plan_ultra">
                                         <div class="fw-bold">Ultra</div>
                                         <div class="fs-5 fw-bold text-success">$39</div>
