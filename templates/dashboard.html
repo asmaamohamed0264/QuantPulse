@@ -58,7 +58,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center flex-wrap">
                 <div>
-                    <h2 class="fw-bold mb-2">Welcome back, {{ current_user.full_name.split()[0] if current_user.full_name else current_user.email.split('@')[0] }}!</h2>
+                    <h2 class="fw-bold mb-2">Welcome back, {{ user.full_name.split()[0] if user.full_name else user.email.split('@')[0] }}!</h2>
                     <p class="text-muted mb-0">Here's your trading overview for today</p>
                 </div>
                 <div class="d-flex gap-2">
@@ -198,8 +198,8 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-muted">Subscription Plan:</span>
-                            <span class="badge bg-{% if current_user.subscription_plan == 'ultra' %}success{% elif current_user.subscription_plan == 'plus' %}warning{% else %}primary{% endif %} fs-6">
-                                {{ current_user.subscription_plan|title if current_user.subscription_plan else 'Basic' }}
+                            <span class="badge bg-{% if user.subscription_plan == 'ultra' %}success{% elif user.subscription_plan == 'plus' %}warning{% else %}primary{% endif %} fs-6">
+                                {{ user.subscription_plan|title if user.subscription_plan else 'Basic' }}
                             </span>
                         </div>
                     </div>
@@ -207,18 +207,18 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-muted">Trial Status:</span>
-                            <span class="{% if current_user.trial_days_remaining and current_user.trial_days_remaining <= 5 %}text-warning fw-bold{% else %}text-success{% endif %}">
-                                {% if current_user.trial_days_remaining %}
-                                    {{ current_user.trial_days_remaining }} days left
+                            <span class="{% if user.trial_days_remaining and user.trial_days_remaining <= 5 %}text-warning fw-bold{% else %}text-success{% endif %}">
+                                {% if user.trial_days_remaining %}
+                                    {{ user.trial_days_remaining }} days left
                                 {% else %}
                                     Active subscription
                                 {% endif %}
                             </span>
                         </div>
-                        {% if current_user.trial_days_remaining %}
+                        {% if user.trial_days_remaining %}
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-{% if current_user.trial_days_remaining <= 5 %}warning{% else %}success{% endif %}" 
-                                 style="width: {{ (current_user.trial_days_remaining / 30 * 100)|round }}%"></div>
+                            <div class="progress-bar bg-{% if user.trial_days_remaining <= 5 %}warning{% else %}success{% endif %}" 
+                                 style="width: {{ (user.trial_days_remaining / 30 * 100)|round }}%"></div>
                         </div>
                         {% endif %}
                     </div>
@@ -255,10 +255,10 @@
                     </div>
                     {% endif %}
                     
-                    {% if current_user.trial_days_remaining and current_user.trial_days_remaining <= 7 %}
+                    {% if user.trial_days_remaining and user.trial_days_remaining <= 7 %}
                     <div class="alert alert-warning mt-3">
                         <h6><i class="fas fa-exclamation-triangle me-2"></i>Trial Ending Soon</h6>
-                        <p class="mb-2 small">Your trial expires in {{ current_user.trial_days_remaining }} days.</p>
+                        <p class="mb-2 small">Your trial expires in {{ user.trial_days_remaining }} days.</p>
                         <a href="/subscription" class="btn btn-sm btn-warning">Upgrade Now</a>
                     </div>
                     {% endif %}
