@@ -42,7 +42,7 @@ def get_user_context(user: Optional[User]) -> dict:
     }
     
     # Add subscription info
-    if user.subscription:
+    if user.subscription and user.subscription.plan:
         context["user"]["subscription_plan"] = user.subscription.plan.plan_type
         if user.subscription.trial_end:
             days_remaining = (user.subscription.trial_end.replace(tzinfo=None) - datetime.utcnow()).days
@@ -319,7 +319,10 @@ async def dashboard(request: Request, user: User = Depends(get_current_user_opti
         performance_dates = json.dumps([f"Day {i}" for i in range(1, 8)])
         performance_values = json.dumps([10000 + i * 100 for i in range(7)])
         
+        logger.info("Getting user context")
         context = get_user_context(user)
+        logger.info("User context retrieved successfully")
+        
         context.update({
             "request": request,
             "stats": stats,
